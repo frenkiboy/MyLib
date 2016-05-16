@@ -1,5 +1,75 @@
+# ---------------------------------------------------------------------------- # 
+.get_Region_Annotation = function(regs.int, regs.annot, annot , name, merge.by='transcript_id'){
 
-# ---------------------------------------------------------------------------- # annotates the ranges with the corresponding list
+  raf = dtfindOverlaps(regs.int, regs.annot)
+  raf$id = names(regs.annot)[raf$subjectHits]
+  raf = merge(raf, annot, by.x='id', by.y=merge.by)
+  setnames(raf, 'id', merge.by)
+  ref = unique(raf[,c('queryHits','gene_id','gene_name'),with=FALSE])
+  raf = raf[,lapply(.SD, function(x)paste(unique(x),collapse=':')),by='queryHits']
+
+  annot.tab = DataFrame(
+    ind = (1:length(regs.int) %in% raf$queryHits),
+    gene_id = 'None',
+    gene_name = 'None')
+
+  annot.tab$gene_id[raf$queryHits]   = raf$gene_id
+  annot.tab$gene_name[raf$queryHits] = raf$gene_name
+  colnames(annot.tab) = paste(name, colnames(annot.tab), sep='.')
+  return(annot.tab)
+
+}
+
+
+annotate_Antisense = function(regs, gtf, tss.up=1000, tss.down=1000, tts.down=1000){
+
+  gtf.sel = gtf$gtf
+  gtf.sel = gtf.sel[!gtf.sel$gene_biotype %in% c('antisense','3prime_overlapping_ncrna')]
+
+  genes = unlist(range(split(gtf.sel, gtf.sel$gene_id)))
+  trans = unlist(range(split(gtf.sel, gtf.sel$transcript_id)))
+
+  tss = promoters(resize(trans, fix='start', 1), upstream=tss.up, downstream=tss.down)
+  tts = promoters(resize(trans, fix='end', 1),   upstream=0, downstream=tts.down)
+
+
+  regs.tss = resize(regs, width=1, fix='start')
+  regs.tss.anti = regs.tss
+  levels(strand(regs.tss.anti)) = c('-','+','*')
+
+  # -------------------------------------------------------------------------- #
+  message('Reathrough...')
+  regs$readthrough = countOverlaps(regs.tss, tts) > 0
+
+  # -------------------------------------------------------------------------- #
+  message('TSS Antisense...')
+  ds.tss.anti = .get_Region_Annotation(regs.tss.anti, tss, gtf$annot, 'tss_anti')
+
+  # -------------------------------------------------------------------------- #
+  message('Gene Body Antisense...')
+  ds.gb.anti = .get_Region_Annotation(regs.tss.anti, genes, gtf$annot, 'gene_body_anti', merge.by='gene_id')
+
+  # -------------------------------------------------------------------------- #
+  message('TSS Sense...')
+  ds.tss = .get_Region_Annotation(regs.tss, tss, gtf$annot, 'tss')
+
+  # -------------------------------------------------------------------------- #
+  message('Antisense transcript...')
+  anti.gtf = gtf$gtf[gtf$gtf$gene_biotype == 'antisense']
+  names(anti.gtf) = anti.gtf$transcript_id
+  ds.anti = .get_Region_Annotation(regs, anti.gtf, gtf$annot, 'antisense')
+
+
+  ds.all = cbind(ds.tss.anti, ds.gb.anti, ds.tss, ds.anti)
+  values(regs) = cbind(values(regs), ds.all)
+  return(regs)
+
+}
+
+
+
+# ---------------------------------------------------------------------------- #
+#annotates the ranges with the corresponding list
 setGeneric("AnnotateRanges",
            function(region, annotation,
                     ignore.strand=FALSE,
