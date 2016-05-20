@@ -167,7 +167,7 @@ findRegionsGenome = function(r, strand='+', nw=-1, cw=1, gap=2000, gval=-100){
 
 # ----------------------------------------------------------------------------- #
 # loops through bw files and finds antisense regions
-Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export=TRUE, mpat='m.bw'){
+Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE, export.bed=TRUE, mpat='m.bw'){
 
     if(is.null(param))
         stop('please spcify the parameters')
@@ -193,9 +193,13 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export=TRUE, mp
                                  gap=param$gap,
                                  gval=param$gval)
         lregs[[bwname]] = regs
-        if(export){
+        
+        if(export.bw)
             export.bw(cov, file.path(outpath, DateNamer(paste(bwname, 'sub', 'bw', sep='.'))))
-            write.table(as.data.frame(regs)[,1:3], file.path(outpath, DateNamer(paste(bwname,'bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
+        
+        if(export.bed){
+            param.name = paste(names(param), param[1,], sep='.', collapse='_')
+            write.table(as.data.frame(regs)[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
         }
     }
     return(lregs)

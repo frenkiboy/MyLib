@@ -315,6 +315,15 @@ GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
     }
 
 
+# ---------------------------------------------------------------------------- #
+# takes the log of of the difference of two variables
+difflog = function(x, logbase=2){
+    
+    mind = x<0
+    x = log(abs(x),logbase)
+    x[mind] = x[mind]*-1
+    x
+}
 
 
 
