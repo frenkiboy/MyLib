@@ -317,11 +317,13 @@ GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
 
 # ---------------------------------------------------------------------------- #
 # takes the log of of the difference of two variables
-difflog = function(x, logbase=2){
+difflog = function(x, logbase=2, zinf=TRUE){
     
     mind = x<0
     x = log(abs(x),logbase)
     x[mind] = x[mind]*-1
+    if(zinf)
+        x[is.infinite(x)] = 0
     x
 }
 
