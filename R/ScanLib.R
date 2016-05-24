@@ -183,6 +183,7 @@ WriteRegs = function(g, outpath, name=NULL, strand=TRUE, sname=c('-'='m','+'='p'
     
     
     names(g) = NULL
+    g = sort(g)
     d = as.data.frame(g)
     if(!strand)
     	d$strand = '*'
