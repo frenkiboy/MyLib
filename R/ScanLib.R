@@ -178,20 +178,20 @@ GCoords = function(x, cor.sep='-', chr.sep=':'){
 # ---------------------------------------------------------------------------- #
 WriteRegs = function(g, outpath, name=NULL, strand=TRUE, sname=c('-'='m','+'='p','*'='n')){
 
-if(is.null(name))
-	stop('Please specify the name')
-
-
-
-d = as.data.frame(g)
-if(!strand)
-	d$strand = '*'
-
-for(i in unique(d$strand)){
-	s = sname[i]
-	print(s)
-	write.table(d[d$strand == i,1:3], file.path(outpath, DateNamer(paste(name, s, 'bed', sep='.'))), row.names=F, col.names=F, quote=F, sep='\t')
-}
+    if(is.null(name))
+    	stop('Please specify the name')
+    
+    
+    names(g) = NULL
+    d = as.data.frame(g)
+    if(!strand)
+    	d$strand = '*'
+    
+    for(i in unique(d$strand)){
+    	s = sname[i]
+    	print(s)
+    	write.table(d[d$strand == i,1:3], file.path(outpath, DateNamer(paste(name, s, 'bed', sep='.'))), row.names=F, col.names=F, quote=F, sep='\t')
+    }
 }
 
 # ---------------------------------------------------------------------------- #
