@@ -64,6 +64,8 @@ getResults = function(des, contrasts, lfc, pval, independentFiltering=FALSE){
         res = res[,c('log2FoldChange','padj')]
         res$diff = diffMark(res, lfc, pval)
         colnames(res) = paste(colnames(res),name, sep='.')
+        if(is.null(rownames(res)))
+            rownames(res) = as.character(1:nrow(res))
         res = data.frame(id=rownames(res),res)
         lres[[name]] = data.table(res)
     }
