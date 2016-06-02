@@ -328,6 +328,21 @@ difflog = function(x, logbase=2, zinf=TRUE){
     x
 }
 
+# ---------------------------------------------------------------------------- #
+# splits a character vector and returns a data frame with numbered elements
+split.numlist = function(v, sep=';', id.name='id', num.name='num'){
+    
+    numlist(strsplit(v, split=sep, id.name, num.name))
+}
+
+
+#given a list of elements returns a data frame with numbered elements
+numlist = function(l, id.name='id', num.name='num'){
+    
+    d = data.frame(unlist(l), rep(1:length(l) ,times=sapply(l, length)))
+    names(d) = c(id.name, num.name)
+    return(d)
+}
 
 
 #####--------------------/FUNCTIONS/---------------------------#####
