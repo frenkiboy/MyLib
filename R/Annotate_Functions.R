@@ -225,15 +225,19 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
         g = granges(reads, use.names=TRUE, use.mcols=TRUE)
         
         g$annot = AnnotateRanges(g, annotation, ignore.strand=ignore.strand)
-        g$uniq  = g$NH == 1
+        g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
         g = g[order(match(g$annot, c(names(annotation),'None')))]
+        g = g[!duplicated(names(g))]
         dg = as.data.table(values(g)[,c('annot','uniq')])
-        dg = dg[,.N, by=list(annot,uniq)]
+        dg$rname = names(g)
+        dg = dg[,list(N=length(unique(rname))), by=list(annot,uniq)]
         return(dg)
     }
     ldg = rbindlist(lchr)
     sdg = data.table(experiment = BamName(infile), 
                      ldg[,list(cnts=sum(N)), by=list(annot,uniq)])
+    
+    sdg[,freq:=round(cnts/sum(cnts),2)]
     return(sdg)
 }
 
@@ -245,7 +249,7 @@ Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8
     require(data.table)
     ld = list()
     for(i in 1:length(bamfiles)){
-        bamfile = bamfile[i]
+        bamfile = bamfiles[i]
         name = BamName(bamfile)
         message(name)
         ld[[name]] = Annotate_Reads(bamfile, 
@@ -257,6 +261,48 @@ Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8
     dd = rbindlist(ld)
     return(dd)
 }
+
+
+# ---------------------------------------------------------------------------- #
+plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6){
     
+    require(ggplot2)
+    
+    tot = dannot[,list(cnts=sum(cnts)),by=list(experiment,annot)]
+    tot = merge(tot, tot[,list(tot=sum(cnts)),by=experiment],by='experiment')
+    tot[,freq := round(cnts/tot, 2)]
+    tot$annot = factor(tot$annot)
+    pdf(file.path(outpath, paste(DateNamer(outname),'pdf', sep='.')), width=width, height=height)
+    
+        g=ggplot(tot, aes(x=experiment, y=cnts, fill=annot)) + 
+            geom_bar(stat='identity') + 
+            theme(axis.text.x = element_text(angle = 90, hjust = 1))
+        print(g)
+        
+        g=ggplot(tot, aes(x=experiment, y=freq, fill=annot)) + 
+            geom_bar(stat='identity') + 
+            theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+            ylim(c(0,1))
+        print(g)
+        
+        g=ggplot(dannot, aes(x=experiment, y=cnts, fill=annot)) + 
+            geom_bar(stat='identity') + 
+            facet_grid(~uniq) +
+            theme(axis.text.x = element_text(angle = 90, hjust = 1))
+        print(g)
+        
+        g=ggplot(dannot, aes(x=experiment, y=freq, fill=annot)) + 
+            geom_bar(stat='identity') + 
+            facet_grid(~uniq) +
+            theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+            ylim(0,1)
+        print(g)
+        
+    dev.off()
+    
+    
+}
+
+
     
     
