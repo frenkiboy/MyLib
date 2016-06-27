@@ -183,3 +183,80 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
               return(annot)
 
           })
+
+
+# ---------------------------------------------------------------------------- #
+# given a gtf file constructs the annotation list
+GTFGetAnntation = function(g, downstream=500, upstream=1000){
+    
+    exon = unlist(g[g$type=='exon'])
+    gene = unlist(range(split(g, g$gene_id)))
+    tss = promoters(gene, downstream=downstream, upstream=upstream)
+    tts = promoters(resize(gene, width=1, fix='end'), downstream=downstream, 
+                    upstream=upstream)
+    intron = GenomicRanges::setdiff(gene, exon)
+    
+    values(exon) = NULL
+    gl = GRangesList(tss=tss,
+                     tts=tts,
+                     exon=exon,
+                     intron=intron)
+    
+    return(gl)
+    
+    
+}
+
+
+# ---------------------------------------------------------------------------- #
+# annotates a bam file with a given annotation list
+Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
+    
+    require(doMC)
+    registerDoMC(ncores)
+    chrs = chrFinder(infile)
+    chrs = chrs[!chrs$chr %in% c('chrM','chrY'),]
+    lchr = list()
+    lchr = foreach(chr = chrs$chr)%dopar%{
+        
+        print(chr)
+        w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
+        reads = readGAlignments(infile, use.names=TRUE, param=ScanBamParam(which=w, tag='NH'))
+        g = granges(reads, use.names=TRUE, use.mcols=TRUE)
+        
+        g$annot = AnnotateRanges(g, annotation, ignore.strand=ignore.strand)
+        g$uniq  = g$NH == 1
+        g = g[order(match(g$annot, c(names(annotation),'None')))]
+        dg = as.data.table(values(g)[,c('annot','uniq')])
+        dg = dg[,.N, by=list(annot,uniq)]
+        return(dg)
+    }
+    ldg = rbindlist(lchr)
+    sdg = data.table(experiment = BamName(infile), 
+                     ldg[,list(cnts=sum(N)), by=list(annot,uniq)])
+    return(sdg)
+}
+
+
+# ---------------------------------------------------------------------------- #
+# Annotates a list of bam files with a given list of annotation
+Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8){
+    
+    require(data.table)
+    ld = list()
+    for(i in 1:length(bamfiles)){
+        bamfile = bamfile[i]
+        name = BamName(bamfile)
+        message(name)
+        ld[[name]] = Annotate_Reads(bamfile, 
+                                    annotation, 
+                                    ignore.strand=ignore.strand, 
+                                    ncores=ncores)
+    
+    }
+    dd = rbindlist(ld)
+    return(dd)
+}
+    
+    
+    
