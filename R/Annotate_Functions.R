@@ -1,4 +1,4 @@
-# ---------------------------------------------------------------------------- # 
+# ---------------------------------------------------------------------------- #
 .get_Region_Annotation = function(regs.int, regs.annot, annot , name, merge.by='transcript_id'){
 
   raf = dtfindOverlaps(regs.int, regs.annot)
@@ -188,55 +188,60 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 # ---------------------------------------------------------------------------- #
 # given a gtf file constructs the annotation list
 GTFGetAnntation = function(g, downstream=500, upstream=1000){
-    
+
     exon = unlist(g[g$type=='exon'])
     gene = unlist(range(split(g, g$gene_id)))
     tss = promoters(gene, downstream=downstream, upstream=upstream)
-    tts = promoters(resize(gene, width=1, fix='end'), downstream=downstream, 
+    tts = promoters(resize(gene, width=1, fix='end'), downstream=downstream,
                     upstream=upstream)
     intron = GenomicRanges::setdiff(gene, exon)
-    
+
     values(exon) = NULL
     gl = GRangesList(tss=tss,
                      tts=tts,
                      exon=exon,
                      intron=intron)
-    
+
     return(gl)
-    
-    
+
+
 }
 
 
 # ---------------------------------------------------------------------------- #
 # annotates a bam file with a given annotation list
 Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
-    
+
     require(doMC)
     registerDoMC(ncores)
     chrs = chrFinder(infile)
-    chrs = chrs[!chrs$chr %in% c('chrM','chrY'),]
+    # chrs = chrs[!chrs$chr %in% c('chrM','chrY'),]
     lchr = list()
     lchr = foreach(chr = chrs$chr)%dopar%{
-        
+
         print(chr)
         w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
         reads = readGAlignments(infile, use.names=TRUE, param=ScanBamParam(which=w, tag='NH'))
         g = granges(reads, use.names=TRUE, use.mcols=TRUE)
+        if(length(g) == 0)
+            return(data.table(rname=NA, annot=NA, uniq=NA))
         
         g$annot = AnnotateRanges(g, annotation, ignore.strand=ignore.strand)
-        g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
         g = g[order(match(g$annot, c(names(annotation),'None')))]
-        g = g[!duplicated(names(g))]
+        g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
         dg = as.data.table(values(g)[,c('annot','uniq')])
         dg$rname = names(g)
-        dg = dg[,list(N=length(unique(rname))), by=list(annot,uniq)]
+        dg = dg[!duplicated(dg$rname)]
         return(dg)
     }
     ldg = rbindlist(lchr)
-    sdg = data.table(experiment = BamName(infile), 
-                     ldg[,list(cnts=sum(N)), by=list(annot,uniq)])
-    
+    ldg = ldg[order(match(ldg$annot, c(names(annotation),'None')))]
+    ldg = ldg[!duplicated(ldg$rname)]
+    ldg = na.omit(ldg)
+
+    sdg = data.table(experiment = BamName(infile),
+                     ldg[,list(cnts=length(rname)), by=list(annot,uniq)])
+
     sdg[,freq:=round(cnts/sum(cnts),2)]
     return(sdg)
 }
@@ -245,18 +250,18 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
 # ---------------------------------------------------------------------------- #
 # Annotates a list of bam files with a given list of annotation
 Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8){
-    
+
     require(data.table)
     ld = list()
     for(i in 1:length(bamfiles)){
         bamfile = bamfiles[i]
         name = BamName(bamfile)
         message(name)
-        ld[[name]] = Annotate_Reads(bamfile, 
-                                    annotation, 
-                                    ignore.strand=ignore.strand, 
+        ld[[name]] = Annotate_Reads(bamfile,
+                                    annotation,
+                                    ignore.strand=ignore.strand,
                                     ncores=ncores)
-    
+
     }
     dd = rbindlist(ld)
     return(dd)
@@ -264,45 +269,61 @@ Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8
 
 
 # ---------------------------------------------------------------------------- #
-plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6){
-    
+plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, which='NULL'){
+
     require(ggplot2)
+    if(is.null(which))
+        which=1:5
     
-    tot = dannot[,list(cnts=sum(cnts)),by=list(experiment,annot)]
+    if(is.null(theme))
+        theme = theme(axis.text.x = element_text(angle = 90, hjust = 1),
+                      axis.text.y = element_text(color='black')) 
+
+    colnames(dannot)[2] = 'Annotation'
+    dannot$Annotation = factor(dannot$Annotation)
+    
+    dannot$experiment = factor(dannot$experiment)
+    tot = dannot[,list(cnts=sum(cnts)),by=list(experiment,Annotation)]
     tot = merge(tot, tot[,list(tot=sum(cnts)),by=experiment],by='experiment')
     tot[,freq := round(cnts/tot, 2)]
-    tot$annot = factor(tot$annot)
-    pdf(file.path(outpath, paste(DateNamer(outname),'pdf', sep='.')), width=width, height=height)
     
-        g=ggplot(tot, aes(x=experiment, y=cnts, fill=annot)) + 
-            geom_bar(stat='identity') + 
-            theme(axis.text.x = element_text(angle = 90, hjust = 1))
-        print(g)
+    tot.uniq = subset(dannot, uniq=='Uniq')
+    tot.uniq = merge(tot.uniq, tot.uniq[,list(tot=sum(cnts)),by=experiment],by='experiment')
+    tot.uniq[,freq := cnts/tot]
+    
+    gl = list()
+
+        gl$a=ggplot(tot, aes(x=experiment, y=cnts, fill=Annotation)) +
+            geom_bar(stat='identity') +
+            theme
         
-        g=ggplot(tot, aes(x=experiment, y=freq, fill=annot)) + 
-            geom_bar(stat='identity') + 
-            theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+
+        gl$b=ggplot(tot, aes(x=experiment, y=freq, fill=Annotation)) +
+            geom_bar(stat='identity') +
+            theme +
             ylim(c(0,1))
-        print(g)
-        
-        g=ggplot(dannot, aes(x=experiment, y=cnts, fill=annot)) + 
-            geom_bar(stat='identity') + 
+
+        gl$c=ggplot(dannot, aes(x=experiment, y=cnts, fill=Annotation)) +
+            geom_bar(stat='identity') +
             facet_grid(~uniq) +
-            theme(axis.text.x = element_text(angle = 90, hjust = 1))
-        print(g)
-        
-        g=ggplot(dannot, aes(x=experiment, y=freq, fill=annot)) + 
-            geom_bar(stat='identity') + 
+            theme
+
+        gl$d=ggplot(dannot, aes(x=experiment, y=freq, fill=Annotation)) +
+            geom_bar(stat='identity') +
             facet_grid(~uniq) +
-            theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+            theme +
             ylim(0,1)
-        print(g)
-        
+
+        gl$e=ggplot(tot.uniq, aes(x=experiment, y=freq, fill=Annotation)) +
+            geom_bar(stat='identity') +
+            theme +
+            xlab('Sample Name') + 
+            ylab('Frequency') +
+            ylim(0,1)
+    
+    pdf(file.path(outpath, paste(DateNamer(outname),'pdf', sep='.')), width=width, height=height)
+        lapply(gl[which], print)            
     dev.off()
-    
-    
+
+
 }
-
-
-    
-    

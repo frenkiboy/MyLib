@@ -1,7 +1,7 @@
 
 
 
-#####----------------------------------------------------------------------------------------------#####
+# ---------------------------------------------------------------------------- #
 ### Parses meme output
 MemeParser = function(path, what='pwm'){
 
@@ -33,17 +33,30 @@ MemeParser = function(path, what='pwm'){
 }
 
 
-# ------------------------------------------------------ #
+# ---------------------------------------------------------------------------- #
+### Parses meme output
+read_MEME = function(path){
+    
+    motif.paths = list.files(path, full.names=TRUE, recursive=TRUE, pattern='txt')
+    memel = lapply(motif.paths, MemeParser)
+    names(memel) = basename(dirname(motif.paths))
+    return(memel)
+}
+
+# ---------------------------------------------------------------------------- #
 # Gets blocks information from meme output
-MemeBlocks = function(path){
+MemeBlocks = function(path, sampname=NULL){
 	print('Reading in the file...')
 	connection = file(path, open='')
 	file = scan(connection, what='list', sep='\n')
 	close(connection)
 	### gets the start and end positions of all motifs
 	blocks.start = grep('BLOCKS', file) + 3
-	blocks.end = grep('^//', file) - 1
+	blocks.end   = grep('^//', file) - 1
 
+	if(length(blocks.start) == 0)
+	    return(list(blocks=NULL, header=NULL))
+	
 	vals = apply(do.call(rbind, lapply(strsplit(file[grepl('E.value', file)][-1], split='\\s+'), '[', c(9,15))),2,as.numeric)
 
 	l.blocks=list()
@@ -58,42 +71,86 @@ MemeBlocks = function(path){
 								  pwm=matrix(),
 								  prior=vector())
 	}
-	names(l.blocks) = paste('motif', 1:length(l.blocks), sep='.')
-	return(l.blocks)
+	
+	header.ind = grep('^MOTIF', file)
+	header = data.frame(do.call(rbind, strsplit(file[header.ind],'\\s+'))[,c(2,6,9,15)])
+	colnames(header) = c('name','width','hits','Eval')
+	options(scipen=10)
+	header[,c(1,3:4)] = apply(header[,c(1,3:4)], 2, as.numeric)
+	header$name = paste('M', sprintf('%05d', header$name),sep='')
+	names(l.blocks) = header$name
+	if(is.null(sampname))
+	    header = data.frame(sampname = basename(dirname(path)),header)
+	
+	header = subset(header, Eval < 0.05)
+	if(nrow(header) == 0)
+        return(list(blocks=NULL, header=NULL))
+	
+	
+	return(list(blocks = l.blocks[header$name], header=header))
 }
 
 
-# ------------------------------------------------------ #
-read_MEME_Blocks = function(path, out='PWM', type='prob'){
+# ---------------------------------------------------------------------------- #
+read_MEME_Output = function(path, out='PWM', type='prob'){
 
   require(TFBSTools)
 
 	if(length(path) == 1){
-  	meme.files = list.files(path, recursive=TRUE, pattern='.txt', full.names=TRUE)
+   	    meme.files = list.files(path, recursive=TRUE, pattern='.txt', full.names=TRUE)
 	}else{
 		meme.files = path
 	}
+    if(length(meme.files) == 0)
+        stop('There are no imput.files')
 
-  meme.names = basename(dirname(meme.files))
   blocks = lapply(meme.files, MemeBlocks)
-  blocks = lapply(blocks, lapply, BlocksToPFM)
-  blocks = lapply(1:length(blocks), function(x){
-																		ml=blocks[[x]];
-																		names(ml) = paste(meme.names[1],1:length(ml),sep='.')
-																		ml
-																		})
+  pwml = list()
+  for(i in 1:length(blocks)){
+      
+      bl = blocks[[i]]
+      if(is.null(bl$header))
+          next()
+      bl$pfm = lapply(bl$blocks, BlocksToPFM)
+      sampname = unique(bl$header$sampname)
+      message(sampname)
+      pwms = lapply(bl$header$name, function(x)
+          toPWM(PFMatrix(profileMatrix=as.matrix(bl$pfm[[x]]),
+                   ID  = paste(sampname,x,sep='.'), 
+                   name= paste(sampname,x,sep='.'), 
+                   strand='+'), type='prob'))
+      pwml[[sampname]] = pwms
+  }
+  pwmu = unlist(pwml)
 
-	blocks = unlist(blocks, recursive=FALSE)
-
-
-  if(out == 'PWM')
-      memes = lapply(blocks, function(x)toPWM(as.matrix(x), type=type))
-
-  return(memes)
+  return(pwmu)
 
 }
 
-# ------------------------------------------------------ #
+# ---------------------------------------------------------------------------- #
+find_Motif_Hits = function(motifs, seqs, min.score='85%', ncores=24, strand='*'){
+    
+    require(doMC)
+    registerDoMC(ncores)
+    lmot = list()
+    lmot = foreach(i = 1:length(motifs))%dopar%{
+        motname = names(motifs)[i]
+        message(motname)
+        hits = searchSeq(motifs[[motname]], seqs, strand='*', min.score=min.score)
+        hits = data.table(as.data.frame(hits))
+        return(hits)
+    }
+    dmot = rbindlist(lmot)
+    return(dmot)
+}
+
+# ---------------------------------------------------------------------------- #
+Summarize_Motif_Hits = function(hits, outpath, name){
+    
+}
+
+    
+# ---------------------------------------------------------------------------- #
 # takes a meme class object and returns a PFM
 BlocksToPFM = function(char){
 

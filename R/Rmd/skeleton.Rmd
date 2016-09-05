@@ -1,0 +1,88 @@
+---
+title: ""
+output:
+  html_document: default
+    toc: true
+    fig_caption: true
+  pdf_document:
+    fig_caption: yes
+    keep_tex: yes
+---
+  
+```{r setup, include=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries:
+
+```{r libraries, include=TRUE, message=FALSE, warning=FALSE, cache=TRUE}
+require(circlize)
+require(ComplexHeatmap)
+require(data.table)
+require(dplyr)
+require(grid)
+require(ggplot2)
+require(ggrepel)
+
+require(openxlsx)
+require(reshape2)
+require(stringr)
+```
+
+```{r Functions, include=TRUE, message=FALSE, warning=FALSE, cache=FALSE, eval=TRUE, echo=FALSE}
+# ---------------------------------------------------------------------- #
+read_xlsx_remote = function(path, sheets=NA){
+    
+    require(readxl)
+
+    destfile = basename(path)
+    download.file(path, destfile = destfile, mode="wb")
+    
+    
+    if(is.na(sheets))
+        sheets <- readxl::excel_sheets(destfile)
+    
+    x = lapply(sheets, function(X) readxl::read_excel(destfile, sheet = X))
+    names(x) = sheets
+    x
+    
+}
+
+# ---------------------------------------------------------------------- #
+read_rds_remote = function(inpath){
+    
+    destfile = basename(inpath)
+    download.file(inpath, destfile = destfile, mode="wb")
+    r = readRDS(destfile)
+    return(r)
+        
+}
+```
+
+---
+  
+# Variables
+  
+```{r variables, include=TRUE, message=FALSE, warning=FALSE, cache=TRUE}
+
+```
+
+---
+  
+# Data Input
+```{r read_table, cache=TRUE}
+
+
+```
+
+---
+
+  
+
+# Statistics
+
+# Plots
+  
+  
+  
+  

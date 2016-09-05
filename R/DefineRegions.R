@@ -199,7 +199,7 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE,
         
         if(export.bed){
             param.name = paste(names(param), param[1,], sep='.', collapse='_')
-            write.table(as.data.frame(regs)[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
+            write.table(as.data.frame(sort(regs))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
         }
     }
     return(lregs)

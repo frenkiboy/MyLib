@@ -152,7 +152,7 @@ GetOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, funct='sum'
 		colname=weight
 	}
 	require(data.table)
-	fo = data.table(as.matrix(findOverlaps(reg1,reg2, ignore.strand=ignore.strand)))
+	fo = dtfindOverlaps(reg1,reg2, ignore.strand=ignore.strand)
 	fo$weight = values(reg2)[[colname]][fo$subjectHits]
 	fo = fo[,fun(weight), by=queryHits]
 	v = rep(0, length(reg1))
@@ -160,13 +160,31 @@ GetOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, funct='sum'
 	return(v)
 }
 
+# ---------------------------------------------------------------------------- #
+GetAnnotOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, null.fac='None'){
 
+    if(is.null(values(reg2)[[colname]]))
+        stop('Please specify a colname')
 
+    fo = dtfindOverlaps(reg1,reg2, ignore.strand=ignore.strand)
+    fo$colname = values(reg2)[[colname]][fo$subjectHits]
+    fo = fo[,unique(paste(colname)), by=queryHits]
+    v = rep(null.fac, length(reg1))
+    v[fo$queryHits] = fo$V1
+    return(v)
+
+}
+
+# ---------------------------------------------------------------------------- #
 dtfindOverlaps = function(reg1, reg2, ignore.strand=FALSE){
 		require(data.table)
 		require(GenomicRanges)
-		data.table(as.matrix(findOverlaps(reg1,reg2, ignore.strand=ignore.strand)))
+		as.data.table(findOverlaps(reg1,reg2, ignore.strand=ignore.strand))
 }
+
+
+# ---------------------------------------------------------------------------- #
+
 
 # ---------------------------------------------------------------------------- #
 GCoords = function(x, cor.sep='-', chr.sep=':'){
@@ -180,14 +198,14 @@ WriteRegs = function(g, outpath, name=NULL, strand=TRUE, sname=c('-'='m','+'='p'
 
     if(is.null(name))
     	stop('Please specify the name')
-    
-    
+
+
     names(g) = NULL
     g = sort(g)
     d = as.data.frame(g)
     if(!strand)
     	d$strand = '*'
-    
+
     for(i in unique(d$strand)){
     	s = sname[i]
     	print(s)
@@ -319,10 +337,10 @@ GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
 # ---------------------------------------------------------------------------- #
 # takes the log of of the difference of two variables
 difflog = function(x, logbase=2, zinf=TRUE){
-    
+
     mind = x<0
     x = log(abs(x),logbase)
-    x[mind] = x[mind]*-1
+    x[which(mind)] = x[which(mind)]*-1
     if(zinf)
         x[is.infinite(x)] = 0
     x
@@ -331,18 +349,29 @@ difflog = function(x, logbase=2, zinf=TRUE){
 # ---------------------------------------------------------------------------- #
 # splits a character vector and returns a data frame with numbered elements
 split.numlist = function(v, sep=';', id.name='id', num.name='num'){
-    
+
     numlist(strsplit(v, split=sep, id.name, num.name))
 }
 
 
 #given a list of elements returns a data frame with numbered elements
 numlist = function(l, id.name='id', num.name='num'){
-    
+
     d = data.frame(unlist(l), rep(1:length(l) ,times=sapply(l, length)))
     names(d) = c(id.name, num.name)
     return(d)
 }
 
 
+# ---------------------------------------------------------------------------- #
+# orders the Ensembl type seqnames
+orderSeqnames = function(g){
+
+    g = chrSeqlevels(g)
+    g = keepStandardChromosomes(g)
+    g = unlist(g)
+    values(g) = NULL
+    g
+
+}
 #####--------------------/FUNCTIONS/---------------------------#####

@@ -34,8 +34,6 @@ GetTrimmingStats = function(path, which.stats=NULL){
     require(stringr)
     require(data.table)
 
-  if(!file.exists(path))
-    stop('The input directory does not exist')
 
 	if(is.null(which.stats))
 		stop('Specify the trimmer')
@@ -46,6 +44,10 @@ GetTrimmingStats = function(path, which.stats=NULL){
             stop('There are no files')
 
 	if(length(path) == 1){
+
+    if(!file.exists(path))
+      stop('The input directory does not exist')
+      
 		files = list.files(path, full.names=TRUE, pattern=pattern, recursive=TRUE)
 	}else{
 		files=path

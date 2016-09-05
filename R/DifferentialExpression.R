@@ -116,7 +116,7 @@ getMeans = function(mat, factors, unique=TRUE){
                 return(rowMeans(mat[,col_ind]))
             }})
         factors = unique(factors)
-        
+
     }
     mean.mat = data.frame(mean.mat)
     colnames(mean.mat) = paste('mean', factors,sep='.')
@@ -151,8 +151,7 @@ getMeans.VST = function(vst, logout=FALSE){
 }
 
 
-
-# ------------------------------------------------------------------------------ #
+# ---------------------------------------------------------------------------- #
 plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
 
     require(ggplot2)
@@ -170,4 +169,44 @@ plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
         plotSparsity(dds)
     dev.off()
     message('Finished!')
+}
+
+
+# ---------------------------------------------------------------------------- #
+
+getResults_limma = function(fit, contrasts, lfc=1, pval=0.05){
+    require(data.table)
+    message('Results... ')
+    ltop = lapply(contrasts, function(x){
+      top = topTable(fit, coef=x, number=100000)
+      top = top[,c(1,5)]
+      top$diff = diffMark(top, lfc, pval, 1, 2)
+      colnames(top)=paste(x,colnames(top),sep='.')
+      top$id = rownames(top)
+      data.table(top)
+    })
+  message('Merging... ')
+  results = MergeDataTable(ltop, key='id')
+  colnames(results) = str_replace(colnames(results),'-','_')
+  return(results)
+}
+
+# ---------------------------------------------------------------------------- #
+get_limma = function(eset, samps){
+
+  message('Contrasts... ')
+  cont=makeBinaryContrasts(samps)
+  contrast.matrix = makeContrasts(contrasts=cont,
+                                  levels=unique(samps))
+
+  message('Design... ')
+  design = model.matrix(~0+samps)
+  colnames(design) = str_replace(colnames(design),'samps','')
+
+  message('Fit... ')
+  fit  = lmFit(eset, design)
+  fit2 = contrasts.fit(fit, contrast.matrix)
+  message('eBayes... ')
+  fit2 = eBayes(fit2, robust=TRUE)
+  return(fit2)
 }
