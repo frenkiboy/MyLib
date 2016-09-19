@@ -12,3 +12,19 @@ fetchAnnotation = function(key, filter=TRUE, sheet=1){
     
     return(samps)
 }
+
+
+# ---------------------------------------------------------------------------- #
+fetchGoogleSheet = function(key){
+    
+    library(googlesheets)
+
+    token_path = '~/googlesheets_token.rds'
+    if(!file.exists(token_path)){
+        token <- gs_auth(cache = FALSE, key=key)
+        saveRDS(token, file = token_path)
+    }
+    suppressMessages(gs_auth(token = token_path, verbose = FALSE))
+    gap = gs_key(key)
+    return(gap)
+}
