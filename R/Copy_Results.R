@@ -41,20 +41,18 @@ copy_Public_DT = function(dt, outpath, name, dirname=NULL){
 
 # ---------------------------------------------------------------------------- #
 
-copy_Public_rds = function(l, outpath, name, dirname=NULL){
+copy_Public_rds = function(l, outpath, name, dirname=name){
     
     if(is.null(dirname))
         stop('Please specify the dirname')
-    
     message('Writing...')
     infile = file.path(outpath, DateNamer(paste(name,'rds', sep='.')))
-    
-    message('Copying...')
     saveRDS(l, infile)
     
     if(!file.exists(infile))
         stop('infile does not exist')
     
+    message('Copying...')
     copy_Public(infile, dirname)
     
 }

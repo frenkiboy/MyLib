@@ -9,7 +9,7 @@ get_Profile = function(setl,
                        hier_filtering='moderate',
                        significant=FALSE){
     
-    
+    require(gProfileR)
     gpl = list()
     for(i in 1:length(setl)){
         
@@ -48,20 +48,23 @@ select_Profile = function(gpl, pval=0.01){
     gdd = rbindlist(gpd)
     gdd$set = factor(gdd$set, levels=names(gpl))
     gdd = dcast(term.name+domain~set, value.var='p.value', fill=0, data=gdd,fun.aggregate=sum)
+    gdd = data.table(gdd)
     gdd = gdd[rowSums(gdd[,-c(1:2),with=FALSE] > -log10(pval)) > 0,]
     gdd = na.omit(gdd)
     return(gdd)
 }
 
 # ------------------------------------------------------------------------ #
-plot_Profile = function(dtab, name, path.out, width=12, height=12, col='red',
+plot_Profile = function(dtab, name, path.out=NULL, width=12, height=12, col='red',
                         cwidth=2, cfont=10, cheight=6){
     
     require(ComplexHeatmap)
     tabl = split(dtab, dtab$domain)
-    pdf(file.path(path.out, DateNamer(paste(name, 'pdf',sep='.'))),
-        width=width,
-        height=height)
+    
+    if(!is.null(path.out))
+        pdf(file.path(path.out, DateNamer(paste(name, 'pdf',sep='.'))),
+            width=width,
+            height=height)
     
     for(i in 1:length(tabl)){
         name = names(tabl)[i]
@@ -81,5 +84,7 @@ plot_Profile = function(dtab, name, path.out, width=12, height=12, col='red',
             draw(h1, heatmap_legend_side='left')
         }
     }
-    dev.off()
+    
+    if(!is.null(path.out))
+        dev.off()
 }

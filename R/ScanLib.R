@@ -161,14 +161,14 @@ GetOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, funct='sum'
 }
 
 # ---------------------------------------------------------------------------- #
-GetAnnotOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, null.fac='None'){
+GetAnnotOverlaps = function(reg1,reg2, colname=NULL, ignore.strand=FALSE, null.fac='None', sep=':'){
 
     if(is.null(values(reg2)[[colname]]))
         stop('Please specify a colname')
 
     fo = dtfindOverlaps(reg1,reg2, ignore.strand=ignore.strand)
     fo$colname = values(reg2)[[colname]][fo$subjectHits]
-    fo = fo[,unique(paste(colname)), by=queryHits]
+    fo = fo[,paste(unique(colname), collapse=sep), by=queryHits]
     v = rep(null.fac, length(reg1))
     v[fo$queryHits] = fo$V1
     return(v)
@@ -374,4 +374,30 @@ orderSeqnames = function(g){
     g
 
 }
+
+# ---------------------------------------------------------------------------- #
+# gets the uniqe names given a character vector
+Uniquer = function(v){
+    
+    require(data.table)
+    d = data.table(id=v)
+    d[,key:=1:.N,by=id]
+    d[,key:=paste(id,key,sep='.')]
+    d$key
+    
+}
+
+
+# ---------------------------------------------------------------------------- #
+# show method for the DataFrame as DataFrame object
+suppressPackageStartupMessages(library(S4Vectors))
+setMethod("showAsCell",signature("DataFrame"),
+          function(object){
+              cnams = paste(colnames(object),collapse=':')
+              if(nchar(cnams) > 10)
+                  cnams = paste0(substring(cnams, 1,10),'...')
+              rep(cnams, nrow(object))
+          })
+
+
 #####--------------------/FUNCTIONS/---------------------------#####

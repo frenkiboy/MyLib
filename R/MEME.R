@@ -1,3 +1,100 @@
+# ---------------------------------------------------------------------------- #
+# given a list of DNSStringSets run MEME
+run_MEME = function(lseq, path.out.meme,  minw=8, maxw=15,nmotifs=5, revcomp=FALSE){
+    
+    suppressPackageStartupMessages(require(TFBSTools))
+    suppressPackageStartupMessages(require(Biostrings))
+    path.meme = '~/bin/Software/MotifDiscovery/meme/bin/meme'
+    options(scipen = 999)
+
+    message('Running...')
+   for(i in 1:length(lseq)){
+            
+        setname = names(lseq)[i]
+        print(setname)
+        path.out.meme.samp = file.path(path.out.meme, setname)
+        dir.create(path.out.meme.samp, showWarnings=FALSE, recursive=TRUE)
+        
+        seq.set = lseq[[i]]
+        seq.set = seq.set[width(seq.set) > 10]
+        path.out.meme.samp.seq = file.path(path.out.meme.samp, paste(setname, 'fa', sep='.'))
+        writeXStringSet(seq.set, path.out.meme.samp.seq)
+            
+        arglist = list('-oc'= path.out.meme.samp,
+                       '-nmotifs'= nmotifs,
+                       '-mod' = 'zoops',
+                       '-minw' = minw,
+                       '-maxw' = maxw,
+                       '-p' = 32,
+                       '-maxsize' = sprintf('%s',10000000))
+        if(revcomp)
+            arglist[['-revcomp']] = ''
+        
+                                      
+        command = paste(path.meme,
+                        path.out.meme.samp.seq,
+                        '-dna',
+                        paste(names(arglist), unlist(arglist), collapse=' '))
+            
+        system(command, wait=TRUE)
+   }
+    
+    message('Done...')
+}
+
+# ---------------------------------------------------------------------------- #
+get_MEME_Output = function(lseq, path.out.meme, pattern='',motif.base=NULL){
+
+    library(dplyr)
+    source(file.path(lib.path, 'ScanLib.R'))
+    source(file.path(lib.path, 'MEME.R'))
+    source(file.path(lib.path, 'App_tomtom.R'))
+    if(is.null(motif.base))
+        motif.base='/home/vfranke/bin/Software/MotifDiscovery/meme/db/motif_databases/JASPAR/JASPAR_CORE_2014_vertebrates.meme'
+
+    indirs = list.files(path.out.meme, full.names=TRUE)
+    indirs = indirs[!str_detect(indirs, 'Tomtom')]
+    lhits = list()
+    for(i in 1:length(indirs)){
+        
+        sname = names(lseq)[i]
+        message(sname)
+        seq.set = lseq[[sname]]
+  
+        memel  = read_MEME_Output(indirs[i])
+        tomtom = annotate_tomtom(indirs[i], motif.base, path.out.meme)
+        tom.an = summarize_tomtom(tomtom)
+        tom.an = na.omit(tom.an)
+    
+        consl = lapply(memel, function(x)paste(c('A','C','G','T')[apply(Matrix(x),2,which.max)], collapse=''))
+        names(consl) = unlist(lapply(memel, function(x)x@ID))
+        hits  = find_Motif_Hits(memel, seq.set, strand='+', min.score='80%')
+        hits = hits %>% rename(transcript_id = seqnames)
+        gsets = data.frame(variable=rep(names(lseq), times=sapply(lseq,length)), 
+                           transcript_id=unlist(lapply(lseq, names)),
+                           width=unlist(lapply(lseq, width)))
+        hits=merge(hits, gsets, by='transcript_id',allow.cartesian=TRUE)
+    
+
+        hits.stat = hits[,list(cnts=length(unique(transcript_id))), by=c('TF', 'variable')]
+        hits.stat = merge(hits.stat, data.table(gsets)[,.N,by='variable'], by='variable')
+        hits.stat = merge(hits.stat, tom.an, by.x='TF', by.y='motname', all.x=TRUE)
+        
+        hits.stat$freq = with(hits.stat, round(cnts/N,3))
+        hits.stat$freq.pseud = with(hits.stat, (cnts+1)/N)
+        hits.stat.cnts = dcast(hits.stat, TF~variable, value.var='cnts', fill=0)
+        hits.stat.freq = dcast(hits.stat, TF~variable, value.var='freq', fill=0)
+        hits.stat.freq.pseud = dcast(hits.stat, TF~variable, value.var='freq.pseud', fill=0)
+        lhits[[sname]] = list(hits = hits,
+                              hits.stat.freq = hits.stat.freq,
+                              hits.stat.cnts = hits.stat.cnts,
+                              hits.stat.freq.pseud = hits.stat.freq.pseud,
+                              hits=hits, hits.stat=hits.stat,
+                              motif.annotation = tom.an,
+                              consl = consl)
+    }
+    return(lhits)        
+}
 
 
 

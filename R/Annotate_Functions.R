@@ -187,7 +187,7 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 
 # ---------------------------------------------------------------------------- #
 # given a gtf file constructs the annotation list
-GTFGetAnntation = function(g, downstream=500, upstream=1000){
+GTFGetAnnotation = function(g, downstream=500, upstream=1000){
 
     exon = unlist(g[g$type=='exon'])
     gene = unlist(range(split(g, g$gene_id)))
@@ -327,3 +327,4 @@ plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, w
 
 
 }
+

@@ -29,9 +29,9 @@ read_rds_remote = function(inpath){
 # ---------------------------------------------------------------------- #
 read_rds_remote_file = function(date, dirname, file.name, path.remote, new=FALSE){
     
-    
-    if(new){
-        read_rds_remote(file.path(path.remote, dirname, paste(date, file.name, 'rds', sep='.')))
+    remote.file = file.path(path.remote, dirname, paste(date, file.name, 'rds', sep='.'))
+    if(!file.exists(remote.file) || new){
+        read_rds_remote(remote.file)
     }else{
         message('Loading cached version...')
         outfile=file.path('./',paste(date, file.name, 'rds', sep='.'))
