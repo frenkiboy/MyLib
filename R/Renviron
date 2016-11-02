@@ -1,0 +1,7 @@
+PROJECTPATH=''
+BASEPATH=''
+SCRIPTPATH=''
+STATIC_PUBLIC_PATH=''
+R_LIBS=''
+MYLIB='https://raw.githubusercontent.com/frenkiboy/MyLib/master/R'
+

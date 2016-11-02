@@ -1,0 +1,2 @@
+# sources special functions and options
+source(file.path(Sys.getenv('MYLIB'),'Utils/Rprofile.R'))
