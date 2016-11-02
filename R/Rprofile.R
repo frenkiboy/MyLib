@@ -19,5 +19,5 @@ options(stringsAsFactors=FALSE)
     if(file.exists(varfile) && length(varfile) == 1)
 	    eval(source(varfile), envir=parent.frame())
     
-    try(source(file.path(Sys.getenv("MYLIB"),"RFun/Startup.R"))) 
+    try(source(file.path(Sys.getenv("MYLIB"),"Startup.R"))) 
 }
