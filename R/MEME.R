@@ -57,7 +57,7 @@ get_MEME_Output = function(lseq, path.out.meme, pattern='',motif.base=NULL){
     lhits = list()
     for(i in 1:length(indirs)){
         
-        sname = names(lseq)[i]
+        sname = basename(indirs)[i]
         message(sname)
         seq.set = lseq[[sname]]
   
@@ -91,7 +91,8 @@ get_MEME_Output = function(lseq, path.out.meme, pattern='',motif.base=NULL){
                               hits.stat.freq.pseud = hits.stat.freq.pseud,
                               hits=hits, hits.stat=hits.stat,
                               motif.annotation = tom.an,
-                              consl = consl)
+                              consl = consl,
+                              motifs=memel)
     }
     return(lhits)        
 }
