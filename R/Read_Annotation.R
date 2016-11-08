@@ -4,8 +4,8 @@
 ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
 
     lib.path=file.path(Sys.getenv('HOME'),'bin/MyLib/RFun')
-    source(file.path(lib.path, 'ScanLib.R'))
-    source(file.path(lib.path, 'GeneFunctions.R'))
+    source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
+    source(file.path(lib.path, 'GeneFunctions.R'), local=TRUE)
     require(data.table)
     require(genomation)
     require(GenomicRanges)
@@ -16,18 +16,19 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
         stop('the gtf file does not exist')
 
     rds.path = str_replace(gtf.path, 'gtf$','rds')
+    gtf = vector()
     if(file.exists(rds.path)){
-        gtfl = readRDS(rds.path)
-        return(gtfl)
+        message('Reading rds file...')
+        gtf = readRDS(rds.path)
+        
+    }else{
+        message('Reading gtf file...')
+        gtf = gffToGRanges(gtf.path, ensembl=ensembl)
     }
-
-
-    message('Reading gtf file...')
-    gtf = gffToGRanges(gtf.path, ensembl=ensembl)
+    
     seqlevels(gtf, force=TRUE) = seqlevels(gtf)[!str_detect(seqlevels(gtf),'NT')]
     seqlevels(gtf)[seqlevels(gtf) == 'chrMT'] = 'chrM'
-
-
+    
     if(which.regions != 'all')
         gtf = gtf[gtf$type %in% which.regions]
 
