@@ -11,6 +11,6 @@ callPeaks_MACS2 = function(chipfile=NULL, contfile=NULL, outpath, name, genome='
                     '--call-summits',
                     '--outdir', outpath)
     if(!is.null(contfile))
-        command = paste(command, '-t' contfile)
+        command = paste(command, '-t', contfile)
     system(command)
 }
