@@ -16,24 +16,10 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
         stop('the gtf file does not exist')
 
     rds.path = str_replace(gtf.path, 'gtf$','rds')
-    gtf = vector()
-    if(file.exists(rds.path)){
-        message('Reading rds file...')
-        gtf = readRDS(rds.path)
         
-    }else{
-        message('Reading gtf file...')
-        gtf = gffToGRanges(gtf.path, ensembl=ensembl)
-    }
-    
-    seqlevels(gtf, force=TRUE) = seqlevels(gtf)[!str_detect(seqlevels(gtf),'NT')]
-    seqlevels(gtf)[seqlevels(gtf) == 'chrMT'] = 'chrM'
-    
-    if(which.regions != 'all')
-        gtf = gtf[gtf$type %in% which.regions]
-
-
-    gtf.exon = gtf[gtf$type == 'exon']
+    message('Importing gtf...')
+    gtf = RCAS::importGtf(gtf.path)
+    gtf.exon = subset(gtf, type == 'exon')
     gtf.exon.ge = split(gtf.exon, gtf.exon$gene_id)
     gtf.range.ge = unlist(range(gtf.exon.ge))
     gtf.exon.tr = split(gtf.exon, gtf.exon$transcript_id)
