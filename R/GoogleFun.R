@@ -32,3 +32,16 @@ fetchGoogleSheet = function(key, prefix=NULL){
     gap = gs_key(key)
     return(gap)
 }
+
+# ---------------------------------------------------------------------------- #
+# fetches annotation from google tables 
+fetch_SampleSheet = function(){
+    
+    library(googlesheets)
+    require(stringr)
+    require(readr)
+    suppressMessages(require(dplyr))
+    
+    tab = gs_read(fetchGoogleSheet(sample_sheet_key), 'Annotation')
+    return(tab)
+}
