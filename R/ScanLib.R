@@ -390,14 +390,14 @@ Uniquer = function(v){
 
 # ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object
-suppressPackageStartupMessages(library(S4Vectors))
-setMethod("showAsCell",signature("DataFrame"),
-          function(object){
-              cnams = paste(colnames(object),collapse=':')
-              if(nchar(cnams) > 10)
-                  cnams = paste0(substring(cnams, 1,10),'...')
-              rep(cnams, nrow(object))
-          })
+# suppressPackageStartupMessages(library(S4Vectors))
+# setMethod("showAsCell",signature("DataFrame"),
+#           function(object){
+#               cnams = paste(colnames(object),collapse=':')
+#               if(nchar(cnams) > 10)
+#                   cnams = paste0(substring(cnams, 1,10),'...')
+#               rep(cnams, nrow(object))
+#           })
 
 
 #####--------------------/FUNCTIONS/---------------------------#####
