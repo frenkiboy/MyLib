@@ -55,6 +55,7 @@ diffMark = function(res, lfc, pval, log.col=NULL, pval.col=NULL, nomark='No'){
 
 getResults = function(des, contrasts, lfc, pval, independentFiltering=FALSE){
 
+    library(data.table)
     lres = list()
     for(i in 1:length(contrasts)){
 
