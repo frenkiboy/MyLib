@@ -22,7 +22,11 @@ TrimmingStats_BBduk = function(path){
     ms$freq[1:4] = round(ms$freq[1:4]/ms$freq[1],2)
     ms$freq[5:8] = round(ms$freq[5:8]/ms$freq[5],2)
 
-    ms = data.table(sample=str_replace(basename(path),'.log',''),ms)
+    sname = basename(path)
+    sname = str_replace(sname,'.log','')
+    sname = str_replace(sname,'.stat.+','')
+    ms = data.table(sample = sname, ms)
+    
     return(ms)
 }
 
@@ -47,8 +51,16 @@ GetTrimmingStats = function(path, which.stats=NULL){
 
     if(!file.exists(path))
       stop('The input directory does not exist')
-      
-		files = list.files(path, full.names=TRUE, pattern=pattern, recursive=TRUE)
+    
+	if(which.stats=='bbduk'){    
+	    files = list.files(path, full.names=TRUE, pattern='log$', recursive=TRUE)
+	    sl = sapply(files, function(x)length(scan(x, what='character',sep='\n', quiet=TRUE)))
+	    if(!all(sl==16) & any(sl==16))
+            stop('stat files got mixed')
+	    if(all(sl == 16))
+	        files = list.files(path, full.names=TRUE, pattern='stat', recursive=TRUE)
+	}
+		
 	}else{
 		files=path
 	}
