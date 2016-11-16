@@ -4,7 +4,7 @@
 run_Paraclu = function(infile, outfile, min.value){
     
     outfile_paraclu = paste(outfile,'mv',min.value,'txt', sep='.')
-    command = paste(path_paraclu,min.value,infile,'>'outfile_paraclu)
+    command = paste(path_paraclu,min.value,infile,'>',outfile_paraclu)
     system(command, wait=TRUE)
     
     outfile_paracut = paste(outfile,'mv',min.value,'cut.txt', sep='.')
