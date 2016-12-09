@@ -225,7 +225,7 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
         g = granges(reads, use.names=TRUE, use.mcols=TRUE)
         if(length(g) == 0)
             return(data.table(rname=NA, annot=NA, uniq=NA))
-        
+
         g$annot = AnnotateRanges(g, annotation, ignore.strand=ignore.strand)
         g = g[order(match(g$annot, c(names(annotation),'None')))]
         g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
@@ -269,34 +269,34 @@ Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8
 
 
 # ---------------------------------------------------------------------------- #
-plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, which='NULL'){
+plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, which=NULL){
 
     require(ggplot2)
     if(is.null(which))
         which=1:5
-    
+
     if(is.null(theme))
         theme = theme(axis.text.x = element_text(angle = 90, hjust = 1),
-                      axis.text.y = element_text(color='black')) 
+                      axis.text.y = element_text(color='black'))
 
     colnames(dannot)[2] = 'Annotation'
     dannot$Annotation = factor(dannot$Annotation)
-    
+
     dannot$experiment = factor(dannot$experiment)
     tot = dannot[,list(cnts=sum(cnts)),by=list(experiment,Annotation)]
     tot = merge(tot, tot[,list(tot=sum(cnts)),by=experiment],by='experiment')
     tot[,freq := round(cnts/tot, 2)]
-    
+
     tot.uniq = subset(dannot, uniq=='Uniq')
     tot.uniq = merge(tot.uniq, tot.uniq[,list(tot=sum(cnts)),by=experiment],by='experiment')
     tot.uniq[,freq := cnts/tot]
-    
+
     gl = list()
 
         gl$a=ggplot(tot, aes(x=experiment, y=cnts, fill=Annotation)) +
             geom_bar(stat='identity') +
             theme
-        
+
 
         gl$b=ggplot(tot, aes(x=experiment, y=freq, fill=Annotation)) +
             geom_bar(stat='identity') +
@@ -317,14 +317,13 @@ plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, w
         gl$e=ggplot(tot.uniq, aes(x=experiment, y=freq, fill=Annotation)) +
             geom_bar(stat='identity') +
             theme +
-            xlab('Sample Name') + 
+            xlab('Sample Name') +
             ylab('Frequency') +
             ylim(0,1)
-    
+
+    browser()
     pdf(file.path(outpath, paste(DateNamer(outname),'pdf', sep='.')), width=width, height=height)
-        lapply(gl[which], print)            
+        lapply(gl[which], print)
     dev.off()
 
-
 }
-

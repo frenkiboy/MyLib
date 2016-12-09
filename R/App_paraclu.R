@@ -32,7 +32,7 @@ Paraclu = function(bamfile, outpath, min.value=10, ncores=12){
                          param=param)
     gl = grglist(ga)
     gl = gl[elementNROWS(gl) == 1]
-    gl = resize(gl, width=1, fix='end')
+    gl = resize(gl, width=10, fix='end')
     gl = unlist(gl)
     gc = lapply(c('+','-'), function(x){
         g = as(coverage(gl[strand(gl)==x]),'GRanges')

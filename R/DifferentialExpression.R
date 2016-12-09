@@ -172,6 +172,68 @@ plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
     message('Finished!')
 }
 
+# ---------------------------------------------------------------------------- #
+get_DifferentialExpression = function(
+    trans, 
+    bamfiles, 
+    coldata, 
+    design=NULL,
+    id.col='id',
+    nreads=5,
+    nsamp=3,
+    contlist=NULL,
+    ignore.strand=FALSE,
+    independent.filtering=TRUE,
+    betaPrior=TRUE){
+    
+    library(GenomicAlignments)
+    library(DESeq2)
+    library(sva)
+    source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
+    source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
+    if(is.null(contlist))
+        stop('Please specify the contrast list')
+    
+    if(!any(id.col %in% colnames(values(trans))))
+        stop('id column is invalid')
+    
+    if(is.null(design))
+        design = formula('~Factor')
+    
+    message('Summarize...')
+    txhits = summarizeOverlaps(trans, BamFileList(bamfiles), 
+                               ignore.strand=ignore.strand,
+                               param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)))
+    
+    message('DES...')
+
+    colData(txhits) = DataFrame(coldata)
+    ass = assays(txhits)[[1]]
+    ass = ass[rowSums(ass > nreads)>nsamp,]
+    colnames(ass) = coldata$sample.name
+    dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
+    des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
+    vsd = varianceStabilizingTransformation(des)
+    
+    
+    message('Results...')
+    res = getResults(des, contlist, lfc=lfc, pval=p.value, 
+                     independentFiltering=independent.filtering)
+    means = getMeans.DESeqDataSet(des)
+    
+    
+    message('Dat...')
+    browser
+    ann = as.data.frame(clusts.sel)
+    ann$id = ann[[id.col]]
+    dat = merge(res, means, by='id')
+    dat = merge(ann, dat, by='id') %>%
+        mutate(id = NULL)
+    
+    
+    return(list(trans=trans, txhits = txhits, des = des, vsd=vsd, res=res, dat=dat))
+}
+
 
 # ---------------------------------------------------------------------------- #
 
