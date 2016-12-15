@@ -174,9 +174,9 @@ plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
 
 # ---------------------------------------------------------------------------- #
 get_DifferentialExpression = function(
-    trans, 
-    bamfiles, 
-    coldata, 
+    trans,
+    bamfiles,
+    coldata,
     design=NULL,
     id.col='id',
     nreads=5,
@@ -185,7 +185,7 @@ get_DifferentialExpression = function(
     ignore.strand=FALSE,
     independent.filtering=TRUE,
     betaPrior=TRUE){
-    
+
     library(GenomicAlignments)
     library(DESeq2)
     library(sva)
@@ -193,18 +193,17 @@ get_DifferentialExpression = function(
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(contlist))
         stop('Please specify the contrast list')
-    
+
     if(!any(id.col %in% colnames(values(trans))))
         stop('id column is invalid')
-    
+
     if(is.null(design))
         design = formula('~Factor')
-    
+
     message('Summarize...')
-    txhits = summarizeOverlaps(trans, BamFileList(bamfiles), 
+    txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
                                ignore.strand=ignore.strand,
                                param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)))
-    
     message('DES...')
 
     colData(txhits) = DataFrame(coldata)
@@ -214,23 +213,29 @@ get_DifferentialExpression = function(
     dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
     des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
     vsd = varianceStabilizingTransformation(des)
-    
-    
+    cnts = as.data.frame(counts(des, normalized=TRUE))
+    colnames(cnts) = paste('cnts',coldata$sample_name,sep='.')
+    cnts$id = rownames(cnts)
+
     message('Results...')
-    res = getResults(des, contlist, lfc=lfc, pval=p.value, 
+    res = getResults(des, contlist, lfc=lfc, pval=p.value,
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
-    
-    
+
+
     message('Dat...')
-    browser
-    ann = as.data.frame(clusts.sel)
+    dind = which(sapply(values(clusts.sel), class) == 'DataFrame')
+    df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(clusts.sel)[,x])))
+    vals = as.data.frame(clusts.sel[,-dind])
+    ann = cbind(vals, df)
     ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
-    dat = merge(ann, dat, by='id') %>%
+    dat = merge(ann, dat, by='id')
+    dat = merge(dat, cnts, by='id') %>%
         mutate(id = NULL)
-    
-    
+
+
+
     return(list(trans=trans, txhits = txhits, des = des, vsd=vsd, res=res, dat=dat))
 }
 
