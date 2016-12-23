@@ -222,7 +222,6 @@ get_DifferentialExpression = function(
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
 
-
     message('Dat...')
     dind = which(sapply(values(clusts.sel), class) == 'DataFrame')
     if(length(dind)>0){
@@ -233,8 +232,8 @@ get_DifferentialExpression = function(
     }
     ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
-    dat = merge(ann, dat, by='id')
-    dat = merge(dat, cnts, by='id') %>%
+    dat = merge(dat, cnts, by='id')
+    dat = merge(ann, dat, by='id')%>%
         mutate(id = NULL)
 
 
