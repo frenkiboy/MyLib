@@ -225,9 +225,12 @@ get_DifferentialExpression = function(
 
     message('Dat...')
     dind = which(sapply(values(clusts.sel), class) == 'DataFrame')
-    df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(clusts.sel)[,x])))
-    vals = as.data.frame(clusts.sel[,-dind])
-    ann = cbind(vals, df)
+    if(length(dind)>0){
+      df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(trans)[,x])))
+      ann = cbind(as.data.frame(trans[,-dind]), df)
+    }else{
+      ann = as.data.frame(trans)
+    }
     ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
     dat = merge(ann, dat, by='id')
