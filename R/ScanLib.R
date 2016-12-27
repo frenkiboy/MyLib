@@ -378,15 +378,29 @@ orderSeqnames = function(g){
 # ---------------------------------------------------------------------------- #
 # gets the uniqe names given a character vector
 Uniquer = function(v){
-    
+
     require(data.table)
     d = data.table(id=v)
     d[,key:=1:.N,by=id]
     d[,key:=paste(id,key,sep='.')]
     d$key
-    
+
 }
 
+
+# ---------------------------------------------------------------------------- #
+markExonNumber = function(g, id='transcript_id'){
+
+  library(data.table)
+  d = data.table(strand=as.character(strand(g)), id = values(g)[[id]])
+  d[d$strand == '+' , `:=`( COUNT = .N , IDX = 1:.N ) , by = id[strand == '+']]
+  d[d$strand == '-' , `:=`( COUNT = .N , IDX = .N:.1) , by = id[strand == '-']]
+  g$exon_number= d$IDX
+  g$exon_count = d$COUNT
+  g$exon_first = g$exon_number == 1
+  g$exon_last  = g$exon_number == g$exon_count
+  return(g)
+}
 
 # ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object
