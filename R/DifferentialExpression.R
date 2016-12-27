@@ -184,7 +184,8 @@ get_DifferentialExpression = function(
     contlist=NULL,
     ignore.strand=FALSE,
     independent.filtering=TRUE,
-    betaPrior=TRUE){
+    betaPrior=TRUE,
+    preprocess.reads=NULL){
 
     library(GenomicAlignments)
     library(DESeq2)
@@ -203,7 +204,8 @@ get_DifferentialExpression = function(
     message('Summarize...')
     txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
                                ignore.strand=ignore.strand,
-                               param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)))
+                               param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
+                               preprocess.reads=preprocess.reads)
     message('DES...')
 
     colData(txhits) = DataFrame(coldata)
