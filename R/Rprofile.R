@@ -15,7 +15,7 @@ options(stringsAsFactors=FALSE)
 	
 	source("http://bioconductor.org/biocLite.R")
     
-    varfile=list.files(getwd(), pattern='Config', full.names=TRUE)
+    varfile=list.files(getwd(), pattern='Config.txt', full.names=TRUE)
     if(file.exists(varfile) && length(varfile) == 1)
 	    eval(source(varfile), envir=parent.frame())
     
