@@ -228,6 +228,7 @@ read_MEME_Output = function(path, out='PWM', type='prob'){
 # ---------------------------------------------------------------------------- #
 find_Motif_Hits = function(motifs, seqs, min.score='85%', ncores=24, strand='*'){
     
+    library(TFBSTools)
     require(doMC)
     registerDoMC(ncores)
     lmot = list()

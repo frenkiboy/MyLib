@@ -402,6 +402,24 @@ markExonNumber = function(g, id='transcript_id'){
   return(g)
 }
 
+
+
+# ---------------------------------------------------------------------------- #
+GRangesTodata.frame = function(g){
+
+  sind = which(sapply(values(g), class) == 'list')
+  if(length(sind) > 0)
+  	g = g[,-sind]
+  dind = which(sapply(values(g), class) == 'DataFrame')
+  if(length(dind)>0){
+    df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(g)[,x])))
+    ann = cbind(as.data.frame(g[,-dind]), df)
+  }else{
+    ann = as.data.frame(g)
+  }
+  return(ann)
+}
+
 # ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object
 # suppressPackageStartupMessages(library(S4Vectors))
