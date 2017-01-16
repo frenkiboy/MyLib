@@ -195,7 +195,13 @@ get_DifferentialExpression = function(
     if(is.null(contlist))
         stop('Please specify the contrast list')
 
-    if(!any(id.col %in% colnames(values(trans))))
+    if(class(trans) = 'GRangesList'){
+      utrans = unlist(trans)
+    }else{
+      utrans = trans
+    }
+
+    if(!any(id.col %in% colnames(values(utrans))))
         stop('id column is invalid')
 
     if(is.null(design))
@@ -225,13 +231,12 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
 
     message('Dat...')
-    dind = which(sapply(values(clusts.sel), class) == 'DataFrame')
-    if(length(dind)>0){
-      df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(trans)[,x])))
-      ann = cbind(as.data.frame(trans[,-dind]), df)
-    }else{
-      ann = as.data.frame(trans)
-    }
+    if(class(trans) == 'GRangesList')
+      ann = getAnnotation_GrangesList(trans)
+
+    if(class(trans) == 'GRanges')
+      ann = GRangesTodata.frame(trans)
+
     ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
     dat = merge(dat, cnts, by='id')
@@ -241,6 +246,19 @@ get_DifferentialExpression = function(
 
 
     return(list(trans=trans, txhits = txhits, des = des, vsd=vsd, res=res, dat=dat))
+}
+
+# ---------------------------------------------------------------------------- #
+getAnnotation_GrangesList = function(gl){
+
+  ran = range(gl)
+  glu = unlist(gl)
+  glu =
+  tab = as.data.frame(unlist(ran))
+  tab$transcript_id = names(ran)
+  tab = merge(tab, unique(as.data.frame(valuse(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
+  return(tab)
+
 }
 
 
