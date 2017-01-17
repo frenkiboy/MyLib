@@ -1,4 +1,3 @@
-
 # --------------------------------------------------------------------------------------------------------- #
 # Reads the gtf annotation
 ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
@@ -16,7 +15,7 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
         stop('the gtf file does not exist')
 
     rds.path = str_replace(gtf.path, 'gtf$','rds')
-        
+
     message('Importing gtf...')
     gtf = RCAS::importGtf(gtf.path)
     gtf.exon = subset(gtf, type == 'exon')
@@ -46,3 +45,14 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
                 gtf.union=gtf.union,
                 annot=gtf.annot))
 }
+
+# --------------------------------------------------------------------------------------------------------- #
+setGeneric("Get_Annotation",
+           function(ranges)
+               standardGeneric("Get_Annotation") )
+
+setMethod("Get_Annotation",signature("GRangesList"),
+          function(ranges){
+Get_Annotation = function(){
+
+})

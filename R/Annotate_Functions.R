@@ -327,3 +327,36 @@ plot_Annotate_Bamfiles = function(dannot, outpath, outname, width=8, height=6, w
     dev.off()
 
 }
+
+
+# ---------------------------------------------------------------------------- #
+setGeneric("Get_Annotation",
+           function(granges)
+               standardGeneric("Get_Annotation") )
+
+setMethod("Get_Annotation",signature("GRangesList"),
+                         function(granges){
+
+
+        Get_Annotation(unlist(granges))
+
+})
+
+setMethod("Get_Annotation",signature("GRanges"),
+          function(granges){
+
+              grl = split(granges, granges$gene_id)
+              trl = split(granges, granges$transcript_id)
+              grl.ranges = unlist(range(grl))
+              trl.ranges = unlist(range(trl))
+
+              message('Constructing annotation...')
+              annot = unique(GRangesTodata.frame(granges)[,c('gene_id','transcript_id','gene_name','gene_biotype')])
+
+              annot$gcoord = as.character(grl.ranges)[annot$gene_id]
+              annot$gwidth = width(grl.ranges[annot$gene_id])
+              annot$tcoord = as.character(trl.ranges)[annot$transcript_id]
+              annot$twidth = sum(width(trl))[annot$transcript_id])
+
+              return(annot)
+})
