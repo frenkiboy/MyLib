@@ -241,7 +241,6 @@ get_DifferentialExpression = function(
     res = getResults(des, contlist, lfc=lfc, pval=p.value,
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
-    browser()
     message('Dat...')
     ann = Get_Annotation(trans)
 
