@@ -185,7 +185,10 @@ get_DifferentialExpression = function(
     ignore.strand=FALSE,
     independent.filtering=TRUE,
     betaPrior=TRUE,
-    preprocess.reads=NULL){
+    preprocess.reads=NULL,
+    outpath,
+    name,
+    load=FALSE){
 
     library(GenomicAlignments)
     library(DESeq2)
@@ -207,11 +210,21 @@ get_DifferentialExpression = function(
     if(is.null(design))
         design = formula('~Factor')
 
-    message('Summarize...')
-    txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
-                               ignore.strand=ignore.strand,
-                               param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
-                               preprocess.reads=preprocess.reads)
+    outfile=file.path(outpath, paste(name, 'Cnts', 'rds', sep='.'))
+    if(load){
+      message('Loading...')
+      txhits=readRDS(outfile)
+    }else{
+      message('Summarize...')
+      txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
+                                 ignore.strand=ignore.strand,
+                                 param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
+                                 preprocess.reads=preprocess.reads)
+      message('Saving...')
+      saveRDS(txhits, outfile)
+    }
+
+
     message('DES...')
 
     colData(txhits) = DataFrame(coldata)
@@ -231,11 +244,13 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
 
     message('Dat...')
+    browser()
     if(class(trans) == 'GRangesList')
       ann = getAnnotation_GrangesList(trans)
 
     if(class(trans) == 'GRanges')
       ann = GRangesTodata.frame(trans)
+
 
     ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
@@ -253,10 +268,10 @@ getAnnotation_GrangesList = function(gl){
 
   ran = range(gl)
   glu = unlist(gl)
-  glu =
   tab = as.data.frame(unlist(ran))
   tab$transcript_id = names(ran)
   tab = merge(tab, unique(as.data.frame(values(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
+  tab$twidth = sum(width(gl))[tab$transcript_id]
   return(tab)
 
 }
