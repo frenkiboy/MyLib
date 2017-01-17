@@ -178,7 +178,6 @@ get_DifferentialExpression = function(
     bamfiles,
     coldata,
     design=NULL,
-    id.col='id',
     nreads=5,
     nsamp=3,
     contlist=NULL,
@@ -199,14 +198,14 @@ get_DifferentialExpression = function(
     if(is.null(contlist))
         stop('Please specify the contrast list')
 
-    if(class(trans) == 'GRangesList'){
-      utrans = unlist(trans)
-    }else{
-      utrans = trans
-    }
-
-    if(!any(id.col %in% colnames(values(utrans))))
-        stop('id column is invalid')
+    # if(class(trans) == 'GRangesList'){
+    #   utrans = unlist(trans)
+    # }else{
+    #   utrans = trans
+    # }
+    #
+    # if(!any(id.col %in% colnames(values(utrans))))
+    #     stop('id column is invalid')
 
     if(is.null(design))
         design = formula('~Factor')
@@ -227,7 +226,6 @@ get_DifferentialExpression = function(
 
 
     message('DES...')
-
     colData(txhits) = DataFrame(coldata)
     ass = assays(txhits)[[1]]
     ass = ass[rowSums(ass > nreads)>nsamp,]
@@ -243,12 +241,10 @@ get_DifferentialExpression = function(
     res = getResults(des, contlist, lfc=lfc, pval=p.value,
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
-
+    browser()
     message('Dat...')
     ann = Get_Annotation(trans)
 
-
-    ann$id = ann[[id.col]]
     dat = merge(res, means, by='id')
     dat = merge(dat, cnts, by='id')
     dat = merge(ann, dat, by='id')%>%
