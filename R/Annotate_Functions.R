@@ -356,7 +356,7 @@ setMethod("Get_Annotation",signature("GRanges"),
               annot$gcoord = as.character(grl.ranges)[annot$gene_id]
               annot$gwidth = width(grl.ranges[annot$gene_id])
               annot$tcoord = as.character(trl.ranges)[annot$transcript_id]
-              annot$twidth = sum(width(trl))[annot$transcript_id])
+              annot$twidth = sum(width(trl))[annot$transcript_id]
 
               return(annot)
 })
