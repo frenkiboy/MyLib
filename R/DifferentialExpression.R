@@ -195,7 +195,7 @@ get_DifferentialExpression = function(
     if(is.null(contlist))
         stop('Please specify the contrast list')
 
-    if(class(trans) = 'GRangesList'){
+    if(class(trans) == 'GRangesList'){
       utrans = unlist(trans)
     }else{
       utrans = trans
