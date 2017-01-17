@@ -411,6 +411,7 @@ GRangesTodata.frame = function(g){
   if(length(sind) > 0)
   	g = g[,-sind]
   dind = which(sapply(values(g), class) == 'DataFrame')
+  names(g) = NULL
   if(length(dind)>0){
     df = do.call(cbind, lapply(dind, function(x)as.data.frame(values(g)[,x])))
     ann = cbind(as.data.frame(g[,-dind]), df)

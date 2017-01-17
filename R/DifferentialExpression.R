@@ -193,6 +193,7 @@ get_DifferentialExpression = function(
     library(GenomicAlignments)
     library(DESeq2)
     library(sva)
+    source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
     source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(contlist))
@@ -244,11 +245,7 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
 
     message('Dat...')
-    if(class(trans) == 'GRangesList')
-      ann = getAnnotation_GrangesList(trans)
-
-    if(class(trans) == 'GRanges')
-      ann = GRangesTodata.frame(trans)
+    ann = Get_Annotation(trans)
 
 
     ann$id = ann[[id.col]]
@@ -261,19 +258,19 @@ get_DifferentialExpression = function(
 
     return(list(trans=trans, txhits = txhits, des = des, vsd=vsd, res=res, dat=dat))
 }
-
-# ---------------------------------------------------------------------------- #
-getAnnotation_GrangesList = function(gl){
-
-  ran = range(gl)
-  glu = unlist(gl)
-  tab = as.data.frame(unlist(ran))
-  tab$transcript_id = names(ran)
-  tab = merge(tab, unique(as.data.frame(values(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
-  tab$twidth = sum(width(gl))[tab$transcript_id]
-  return(tab)
-
-}
+#
+# # ---------------------------------------------------------------------------- #
+# getAnnotation_GrangesList = function(gl){
+#
+#   ran = range(gl)
+#   glu = unlist(gl)
+#   tab = as.data.frame(unlist(ran))
+#   tab$transcript_id = names(ran)
+#   tab = merge(tab, unique(as.data.frame(values(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
+#   tab$twidth = sum(width(gl))[tab$transcript_id]
+#   return(tab)
+#
+# }
 
 
 # ---------------------------------------------------------------------------- #
