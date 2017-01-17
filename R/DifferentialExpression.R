@@ -256,7 +256,7 @@ getAnnotation_GrangesList = function(gl){
   glu =
   tab = as.data.frame(unlist(ran))
   tab$transcript_id = names(ran)
-  tab = merge(tab, unique(as.data.frame(valuse(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
+  tab = merge(tab, unique(as.data.frame(values(glu))[,c('gene_id','transcript_id','gene_biotype')]), by='transcript_id')
   return(tab)
 
 }
