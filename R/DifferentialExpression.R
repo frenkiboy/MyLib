@@ -244,7 +244,6 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
 
     message('Dat...')
-    browser()
     if(class(trans) == 'GRangesList')
       ann = getAnnotation_GrangesList(trans)
 
