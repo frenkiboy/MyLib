@@ -46,13 +46,3 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
                 annot=gtf.annot))
 }
 
-# --------------------------------------------------------------------------------------------------------- #
-setGeneric("Get_Annotation",
-           function(ranges)
-               standardGeneric("Get_Annotation") )
-
-setMethod("Get_Annotation",signature("GRangesList"),
-          function(ranges){
-Get_Annotation = function(){
-
-})
