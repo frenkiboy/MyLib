@@ -44,6 +44,8 @@ calculate_kmers = function(seq.all,
             }
         }
         kmers = data.table(data.frame(lk))
+        knams = dk$k1
+        
     }
 
     message('Normalization...')
@@ -58,7 +60,6 @@ calculate_kmers = function(seq.all,
 
     if(normalize)
         kmers = log((kmers+1)/exp(rowMeans(log(kmers+1))))
-    
     message('Colnames...')
     colnames(kmers) = knams
     
