@@ -1,5 +1,6 @@
 read_ERCC = function(ercc.bamfiles, ercc.annot.path){
 
+
   library(Rsamtools)
 		ercc.cnts = lapply(ercc.bamfiles, function(x){
 													name = BamName(x)
