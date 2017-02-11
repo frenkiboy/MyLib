@@ -11,7 +11,7 @@ read_ERCC = function(ercc.bamfiles, ercc.annot.path){
 		ercc.cnts = ercc.cnts[-1,]
 
     stat = Rsamtools::idxstatsBam(ercc.bamfiles[1])[,c('seqnames','seqlength')]
-    ercc.cnts = merge(stat, dbam, by.x='seqnames', by.y='id')
+    ercc.cnts = merge(stat, ercc.cnts, by.x='seqnames', by.y='id')
     setnames(ercc.cnts, 'seqnames', 'id')
 
 		ercc.annot = read.table(ercc.annot.path, header=TRUE, sep='\t')[,c(2,3,4,5)]
