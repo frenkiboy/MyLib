@@ -8,6 +8,7 @@ hh <- function(d) d[1:5,1:5]
 
 ln <- function(x)length(unique(x))
 
+glob = list()
 
 # ------------------------------------------------------------------- #
 # calculates the memory usage of objects
