@@ -275,7 +275,7 @@ getResults_limma = function(fit, contrasts, lfc=1, pval=0.05){
     message('Results... ')
     ltop = lapply(contrasts, function(x){
       top = topTable(fit, coef=x, number=100000)
-      top = top[,c(1,5)]
+      top = top[,c('logFC','adj.P.Val')]
       top$diff = diffMark(top, lfc, pval, 1, 2)
       colnames(top)=paste(x,colnames(top),sep='.')
       top$id = rownames(top)
