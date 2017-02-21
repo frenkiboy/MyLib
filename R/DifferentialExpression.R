@@ -298,6 +298,8 @@ get_limma = function(eset, samps){
   message('Design... ')
   design = model.matrix(~0+samps)
   colnames(design) = str_replace(colnames(design),'samps','')
+  design = design[,match(rownames(contrast.matrix), colnames(design))]
+
 
   message('Fit... ')
   fit  = lmFit(eset, design)
