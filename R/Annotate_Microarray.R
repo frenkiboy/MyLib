@@ -1,5 +1,5 @@
 
-# ------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 
 # cstrand - use it to combine coordinate and strand, to be able to define promoters
 Get_Affy_Annotation = function(ids, organism='mmusculus', attribs=NULL, platform, cstrand=FALSE){
@@ -73,4 +73,22 @@ Parse_MogeneGEO = function(platform.id, organism='mmusculus'){
   return(bmd)
 
 
+}
+
+
+# ---------------------------------------------------------------------------- #
+annotate_Refseq = function(ref.ids, organism='mmusculus'){
+
+  library(biomaRt)
+  message(organism)
+  mart = useMart("ensembl", dataset=paste(organism,"gene_ensembl", sep='_'))
+  bmm =  getBM(attributes=c('ensembl_gene_id','hgnc_symbol','refseq_mrna'),
+              filters='refseq_mrna',  values = ref.ids, mart = mart)
+  bmn =  getBM(attributes=c('ensembl_gene_id','hgnc_symbol','refseq_ncrna'),
+              filters='refseq_ncrna',  values = ref.ids, mart = mart)
+  colnames(bmn)[3] = 'refseq_mrna'
+
+  bm = rbind(bmm, bmn)
+  colnames(bm) = c('gene_id','gene_name','refseq_id')
+  return(bm)
 }
