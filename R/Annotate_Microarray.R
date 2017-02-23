@@ -81,10 +81,14 @@ annotate_Refseq = function(ref.ids, organism='mmusculus'){
 
   library(biomaRt)
   message(organism)
+  if(organism == 'mmusculus')
+      symbol = 'mgi_symbol'
+  if(organism == 'hsapiens')
+      symbol = 'hgnc_symbol'
   mart = useMart("ensembl", dataset=paste(organism,"gene_ensembl", sep='_'))
-  bmm =  getBM(attributes=c('ensembl_gene_id','hgnc_symbol','refseq_mrna'),
+  bmm =  getBM(attributes=c('ensembl_gene_id',symbol,'refseq_mrna'),
               filters='refseq_mrna',  values = ref.ids, mart = mart)
-  bmn =  getBM(attributes=c('ensembl_gene_id','hgnc_symbol','refseq_ncrna'),
+  bmn =  getBM(attributes=c('ensembl_gene_id',symbol,'refseq_ncrna'),
               filters='refseq_ncrna',  values = ref.ids, mart = mart)
   colnames(bmn)[3] = 'refseq_mrna'
 
