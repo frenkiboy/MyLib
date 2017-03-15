@@ -315,13 +315,22 @@ get_limma_tab = function(expr, samps){
   lm = get_limma(expr, samps)
   cont = makeBinaryContrasts(unique(samps))
   res = getResults_limma(lm, cont)
-  dat = as(featureData(expr),'data.frame') %>%
-    dplyr::select(1,9,10,11)
-  colnames(dat) = str_replace(colnames(dat),' ','_')
-  colnames(dat) = tolower(colnames(dat))
-  means = getMeans(exprs(expr), samps, unique=FALSE)
-  means$id = rownames(means)
-  tab = merge(dat, res, by='id')
+
+	if(class(expr) == 'expressionSet'){
+
+		dat = as(featureData(expr),'data.frame') %>%
+		dplyr::select(1,9,10,11)
+		colnames(dat) = str_replace(colnames(dat),' ','_')
+		colnames(dat) = tolower(colnames(dat))
+		means = getMeans(exprs(expr), samps, unique=FALSE)
+		means$id = rownames(means)
+  		tab = merge(dat, res, by='id')
+	}else{
+		means = getMeans(expr, samps, unique=FALSE
+		means$id = rownames(means
+		tab = res
+	}
+
   tab = merge(tab, means, by='id')
   return(tab)
 }
