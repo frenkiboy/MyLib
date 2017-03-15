@@ -326,8 +326,8 @@ get_limma_tab = function(expr, samps){
 		means$id = rownames(means)
   		tab = merge(dat, res, by='id')
 	}else{
-		means = getMeans(expr, samps, unique=FALSE
-		means$id = rownames(means
+		means = getMeans(expr, samps, unique=FALSE)
+		means$id = rownames(means)
 		tab = res
 	}
 
