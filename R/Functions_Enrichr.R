@@ -38,7 +38,7 @@ get_Enrichr_list = function(gene.lists){
         
         for(i in .gene.set.libraries){
             message(i)
-            lres[[name]][[i]] = get_Enrichr(gene.list, i)
+            lres[[name]][[i]] = get_Enrichr(gens.lists[[name]], i)
         }
     }
     return(lres)
