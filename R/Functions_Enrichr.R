@@ -68,7 +68,6 @@ combine_Enrichr = function(lres){
 # ------------------------------------------------------------------------ #
 select_Enrichr = function(lmat, pval=0.05){
     
-    browser()
     lsel = list()
     for(i in names(lmat)){
         message(i)
