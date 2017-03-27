@@ -68,12 +68,13 @@ combine_Enrichr = function(lres){
 # ------------------------------------------------------------------------ #
 select_Enrichr = function(lmat, pval=0.05){
     
+    browser()
     lsel = list()
     for(i in names(lmat)){
         message(i)
         mat = lmat[[i]]
         if(nrow(mat) > 0){
-            mat = mat[sum(rowSums(mat[,-1,with=FALSE] > -log10(pval))>0)]
+            mat = mat[rowSums(mat[,-1,with=FALSE] > -log10(pval)) > 0,]
             lsel[[i]] = mat
         }
     }
