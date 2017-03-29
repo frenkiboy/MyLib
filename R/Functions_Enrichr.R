@@ -60,24 +60,19 @@ combine_Enrichr = function(lres){
         d$log = -log10(d$'Adjusted P-value')
         d$log[is.infinite(d$log)] = 0
         dmat = dcast(d, Term~set, value.var = 'log', fill=0)
+        dmat = data.table(domain = i, dmat)
         lmat[[i]] = dmat
     }
-    return(lmat)
+    return(rbindlist(dmat))
 }
 
 # ------------------------------------------------------------------------ #
-select_Enrichr = function(lmat, pval=0.05){
+select_Enrichr = function(mat, pval=0.05){
     
-    lsel = list()
-    for(i in names(lmat)){
-        message(i)
-        mat = lmat[[i]]
-        if(nrow(mat) > 0){
-            mat = mat[rowSums(mat[,-1,with=FALSE] > -log10(pval)) > 0,]
-            lsel[[i]] = mat
-        }
-    }
-    return(lsel)
+    if(nrow(mat) > 0)
+        mat = mat[rowSums(mat[,-(1:2),with=FALSE] > -log10(pval)) > 0,]
+    
+    return(mat)
 }
 
 # ------------------------------------------------------------------------ #
@@ -126,6 +121,9 @@ plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='
             pdf(file.path(path.out, DateNamer(paste(outname, 'pdf',sep='.'))),
                 width=width,
                 height=height)
+    
+        if(class(tabl) == 'data.table')
+            table = split(tabl, tabl$domain)
         
         for(i in 1:length(tabl)){
             name = names(tabl)[i]
