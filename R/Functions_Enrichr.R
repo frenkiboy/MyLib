@@ -116,21 +116,20 @@ get_Enrichr = function(gene.list = NULL,
 plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='red',
                         cwidth=2, cfont=10, cheight=6){
         library(ComplexHeatmap)
-
         if(!is.null(path.out))
             pdf(file.path(path.out, DateNamer(paste(outname, 'pdf',sep='.'))),
                 width=width,
                 height=height)
     
-        if(class(tabl) == 'data.table')
-            table = split(tabl, tabl$domain)
+        if(any(class(tabl) %in% 'data.table'))
+            tabl = split(tabl, tabl$domain)
         
         for(i in 1:length(tabl)){
             name = names(tabl)[i]
             print(name)
             dat = tabl[[name]]
             if(nrow(dat)>1){
-                m = as.matrix(dat[,-c(1),with=F])
+                m = as.matrix(dat[,-c(1:2),with=F])
                 rownames(m) = dat$Term
                 h1=Heatmap(m, column_title=name, 
                            col=colorRampPalette(c(gray(.97),col))(50),
@@ -139,7 +138,6 @@ plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='
                            column_names_gp = gpar(fontsize = cfont),
                            column_names_max_height = unit(cheight,'cm')
                 )
-                
                 draw(h1, heatmap_legend_side='left')
             }
         }
@@ -150,8 +148,14 @@ plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='
     
 
 # ------------------------------------------------------------------------ #
+#' Enrichr_all
+#'
+#' @param glist a list of gene names corresponding to different conditions
+#' @param pval p value for finding significantly enriched categories
+#'
+#' @return a list containing the original gene list, enriched categories 
+#' per element of the gene list, combined data table, and selected categories
 Enrichr_all = function(glist, pval=0.05){
-    
     
     enrichr = get_Enrichr_list(glist)
     combine = combine_Enrichr(enrichr)
