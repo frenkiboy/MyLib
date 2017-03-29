@@ -63,7 +63,7 @@ combine_Enrichr = function(lres){
         dmat = data.table(domain = i, dmat)
         lmat[[i]] = dmat
     }
-    return(rbindlist(dmat))
+    return(rbindlist(lmat))
 }
 
 # ------------------------------------------------------------------------ #
@@ -149,6 +149,17 @@ plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='
 }
     
 
+# ------------------------------------------------------------------------ #
+Enrichr_all = function(glist, pval=0.05){
+    
+    
+    enrichr = get_Enrichr_list(glist)
+    combine = combine_Enrichr(enrichr)
+    ensel   = select_Enrichr(combine, pval)
+    
+    lout = list(glist = glist, enrichr=enrichr, combine=combine, ensel=ensel)
+    return(lout)
+}
 
 # ------------------------------------------------------------------------ #
 test_Enrichr = function(){
