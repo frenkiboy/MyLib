@@ -118,6 +118,41 @@ get_Enrichr = function(gene.list = NULL,
 }
 
 # ------------------------------------------------------------------------ #
+plot_Enrichr = function(tabl, outname, path.out=NULL, width=12, height=12, col='red',
+                        cwidth=2, cfont=10, cheight=6){
+        library(ComplexHeatmap)
+
+        if(!is.null(path.out))
+            pdf(file.path(path.out, DateNamer(paste(outname, 'pdf',sep='.'))),
+                width=width,
+                height=height)
+        
+        for(i in 1:length(tabl)){
+            name = names(tabl)[i]
+            print(name)
+            dat = tabl[[name]]
+            if(nrow(dat)>1){
+                m = as.matrix(dat[,-c(1),with=F])
+                rownames(m) = dat$Term
+                h1=Heatmap(m, column_title=name, 
+                           col=colorRampPalette(c(gray(.97),col))(50),
+                           width=unit(cwidth,'cm'),
+                           cluster_columns=FALSE,
+                           column_names_gp = gpar(fontsize = cfont),
+                           column_names_max_height = unit(cheight,'cm')
+                )
+                
+                draw(h1, heatmap_legend_side='left')
+            }
+        }
+        
+        if(!is.null(path.out))
+            dev.off()
+}
+    
+
+
+# ------------------------------------------------------------------------ #
 test_Enrichr = function(){
     gene.list = c("PHF14","RBM3","MSL1","PHF21A","ARL10","INSR","JADE2","P2RX7","LINC00662","CCDC101","PPM1B","KANSL1L","CRYZL1","ANAPC16","TMCC1","CDH8","RBM11","CNPY2","HSPA1L","CUL2","PLBD2","LARP7","TECPR2","ZNF302","CUX1","MOB2","CYTH2","SEC22C","EIF4E3","ROBO2","ADAMTS9-AS2","CXXC1","LINC01314","ATF7","ATP5F1")
     lres = get_Enrichr_list(gene.list) 
@@ -126,3 +161,4 @@ test_Enrichr = function(){
     comb = combine_Enrichr(l)
     sel = select_Enrichr(comb)
 }
+
