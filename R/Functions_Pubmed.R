@@ -51,6 +51,7 @@ WriteAbstract = function(dpub, outname, path.out){
     outfile = file.path(path.out, outname)
     if(file.exists(outfile))
         file.remove(outfile)
+    
     for(i in 1:nrow(dpub)){
         
         paper = dpub[i,]

@@ -50,18 +50,21 @@ combine_Enrichr = function(lres){
     library(data.table)
     lmat=list()
     for(i in .gene.set.libraries){
-        
         l = lapply(names(lres), function(x){
             d = lres[[x]][[i]]
-            d$set = x
-            data.table(d)
+            if(nrow(d)> 0){
+                d$set = x
+                data.table(d)
+            }
         })
         d = rbindlist(l)
-        d$log = -log10(d$'Adjusted P-value')
-        d$log[is.infinite(d$log)] = 0
-        dmat = dcast(d, Term~set, value.var = 'log', fill=0)
-        dmat = data.table(domain = i, dmat)
-        lmat[[i]] = dmat
+        if(nrow(d)>0){
+            d$log = -log10(d$'Adjusted P-value')
+            d$log[is.infinite(d$log)] = 0
+            dmat = dcast(d, Term~set, value.var = 'log', fill=0)
+            dmat = data.table(domain = i, dmat)
+            lmat[[i]] = dmat
+        }
     }
     return(rbindlist(lmat))
 }
@@ -69,8 +72,14 @@ combine_Enrichr = function(lres){
 # ------------------------------------------------------------------------ #
 select_Enrichr = function(mat, pval=0.05){
     
-    if(nrow(mat) > 0)
-        mat = mat[rowSums(mat[,-(1:2),with=FALSE] > -log10(pval)) > 0,]
+    if(nrow(mat) > 0){
+        rind = rowSums(mat[,-(1:2),with=FALSE] > -log10(pval)) > 0
+        if(sum(rind) > 0){
+            mat = mat[rind,]
+        }else{
+            mat = NULL
+        }
+    }
     
     return(mat)
 }

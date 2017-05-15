@@ -185,6 +185,7 @@ get_DifferentialExpression = function(
     independent.filtering=TRUE,
     betaPrior=TRUE,
     preprocess.reads=NULL,
+    singleEnd=TRUE,
     outpath,
     name,
     load=FALSE){
@@ -219,7 +220,8 @@ get_DifferentialExpression = function(
       txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
                                  ignore.strand=ignore.strand,
                                  param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
-                                 preprocess.reads=preprocess.reads)
+                                 preprocess.reads=preprocess.reads,
+				 singleEnd=singleEnd)
       message('Saving...')
       saveRDS(txhits, outfile)
     }
