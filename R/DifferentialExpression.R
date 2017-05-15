@@ -188,12 +188,14 @@ get_DifferentialExpression = function(
     singleEnd=TRUE,
     outpath,
     name,
+    cnts.name=NULL,
     load=FALSE){
 
     library(GenomicAlignments)
     library(DESeq2)
     library(sva)
     source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
+    source(file.path(lib.path, 'BamWorkers.R'), local=TRUE)
     source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(contlist))
@@ -231,7 +233,12 @@ get_DifferentialExpression = function(
     colData(txhits) = DataFrame(coldata)
     ass = assays(txhits)[[1]]
     ass = ass[rowSums(ass > nreads)>nsamp,]
-    colnames(ass) = coldata$sample.name
+    
+    if(!is.null(cnts.name)){
+        colnames(ass) = coldata[[cnts.name]]
+    }else{
+	colnames(ass) = BamName(bamfiles)
+    } 
     dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
     des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
     vsd = varianceStabilizingTransformation(des)
