@@ -351,15 +351,22 @@ setMethod("Get_Annotation",signature("GRanges"),
               grl.ranges = unlist(range(grl))
               trl.ranges = unlist(range(trl))
 
+              dannot = unique(as.data.frame(values(granges)))
+              
               message('Constructing annotation...')
               # annot = unique(GRangesTodata.frame(granges)[,c('gene_id','transcript_id','gene_name','gene_biotype')])
-              annot = unique(GRangesTodata.frame(granges))
-
+              vsub = c('gene_id','transcript_id')
+              if('gene_name' %in% colnames(dannot))
+                  vsub = c(vsub,'gene_name')
+              
+              if('gene_biotype' %in% colnames(dannot))
+                  vsub = c(vsub,'gene_biotype')
+              
+              annot = dannot[,vsub]
               annot$gcoord = as.character(grl.ranges)[annot$gene_id]
-              annot$gwidth = width(grl.ranges[annot$gene_id])
+              annot$gwidth = width(grl.ranges)[annot$gene_id]
               annot$tcoord = as.character(trl.ranges)[annot$transcript_id]
               annot$twidth = sum(width(trl))[annot$transcript_id]
-              annot$id = names(granges)
-
+              
               return(annot)
 })
