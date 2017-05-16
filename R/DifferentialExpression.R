@@ -241,6 +241,7 @@ get_DifferentialExpression = function(
     } 
     dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
     des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
+    colnames(des) = colnames(ass)
     vsd = varianceStabilizingTransformation(des)
     cnts = as.data.frame(counts(des, normalized=TRUE))
     colnames(cnts) = paste('cnts',coldata$sample_name,sep='.')
