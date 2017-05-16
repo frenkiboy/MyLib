@@ -244,7 +244,6 @@ get_DifferentialExpression = function(
     colnames(des) = colnames(ass)
     vsd = varianceStabilizingTransformation(des)
     cnts = as.data.frame(counts(des, normalized=TRUE))
-    colnames(cnts) = paste('cnts',coldata$sample_name,sep='.')
     cnts$id = rownames(cnts)
 
     message('Results...')
