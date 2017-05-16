@@ -187,6 +187,7 @@ get_DifferentialExpression = function(
     preprocess.reads=NULL,
     singleEnd=TRUE,
     invertStrand=FALSE,
+    merge_id = 'transcript_id',
     outpath,
     name,
     cnts.name=NULL,
@@ -258,6 +259,7 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
     message('Dat...')
     ann = Get_Annotation(trans)
+    ann$id = ann[[merge_id]]
 
     dat = merge(res, means, by='id')
     dat = merge(dat, cnts, by='id')
