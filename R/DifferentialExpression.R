@@ -186,11 +186,13 @@ get_DifferentialExpression = function(
     betaPrior=TRUE,
     preprocess.reads=NULL,
     singleEnd=TRUE,
+    invertStrand=FALSE,
     outpath,
     name,
     cnts.name=NULL,
     load=FALSE){
 
+    library(GenomicRanges)
     library(GenomicAlignments)
     library(DESeq2)
     library(sva)
@@ -220,7 +222,10 @@ get_DifferentialExpression = function(
       txhits=readRDS(outfile)
     }else{
       message('Summarize...')
-      txhits = summarizeOverlaps(trans, BamFileList(bamfiles),
+      ranges=trans
+      if(invertStrand)
+	ranges = invertStrand(ranges)
+      txhits = summarizeOverlaps(ranges, BamFileList(bamfiles),
                                  ignore.strand=ignore.strand,
                                  param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
                                  preprocess.reads=preprocess.reads,
