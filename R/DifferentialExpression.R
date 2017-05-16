@@ -260,7 +260,8 @@ get_DifferentialExpression = function(
     message('Dat...')
     ann = Get_Annotation(trans)
     ann$id = ann[[merge_id]]
-
+    browser()
+    
     dat = merge(res, means, by='id')
     dat = merge(dat, cnts, by='id')
     dat = merge(ann, dat, by='id')%>%
