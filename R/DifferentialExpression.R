@@ -194,6 +194,7 @@ get_DifferentialExpression = function(
     library(GenomicAlignments)
     library(DESeq2)
     library(sva)
+    library(dplyr)
     source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
     source(file.path(lib.path, 'BamWorkers.R'), local=TRUE)
     source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
