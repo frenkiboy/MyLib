@@ -192,7 +192,10 @@ get_DifferentialExpression = function(
     outpath,
     name,
     cnts.name=NULL,
-    load=FALSE){
+    load=FALSE,
+    lfc=1,
+    padj=0.01
+	){
 
     library(GenomicRanges)
     library(GenomicAlignments)
@@ -255,7 +258,7 @@ get_DifferentialExpression = function(
     cnts$id = rownames(cnts)
 
     message('Results...')
-    res = getResults(des, contlist, lfc=lfc, pval=p.value,
+    res = getResults(des, contlist, lfc=lfc, pval=padj,
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
     message('Dat...')
