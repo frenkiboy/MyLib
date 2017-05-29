@@ -188,6 +188,7 @@ get_DifferentialExpression = function(
     singleEnd=TRUE,
     invertStrand=FALSE,
     merge_id = 'transcript_id',
+    annotation=NULL,
     outpath,
     name,
     cnts.name=NULL,
@@ -258,10 +259,14 @@ get_DifferentialExpression = function(
                      independentFiltering=independent.filtering)
     means = getMeans.DESeqDataSet(des)
     message('Dat...')
-    ann = Get_Annotation(trans)
+    if(is.null(annotation)){
+   	ann = Get_Annotation(trans)
+    else{
+	ann = annotation
+    }
+
     ann$id = ann[[merge_id]]
-    browser()
-    
+
     dat = merge(res, means, by='id')
     dat = merge(dat, cnts, by='id')
     dat = merge(ann, dat, by='id')%>%
