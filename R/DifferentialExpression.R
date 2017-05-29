@@ -261,7 +261,7 @@ get_DifferentialExpression = function(
     message('Dat...')
     if(is.null(annotation)){
    	ann = Get_Annotation(trans)
-    else{
+    }else{
 	ann = annotation
     }
 
