@@ -44,45 +44,44 @@ extract_Jaspar_Motifs = function(organism, database='JASPAR2017'){
 
 
 # ---------------------------------------------------------------------------- #
-scan_Genome = function(matlist, genome.name, outpath, min.score='80%'){
-
-  library(TFBSTools)
-  library(stringr)
-
-  gname = str_replace(genome.name,'^.+\\.','')
-
-  path_out_scan_genome = file.path(outpath, gname)
-      dir.create(path_out_scan_genome, showWarnings=FALSE)
-
-  genome = GenomeLoader(genome.name)
-  chrs = names(genome)
-  chrs = chrs[!str_detect(chrs, 'Un')]
-  chrs = chrs[!str_detect(chrs, 'random')]
-  chrs = chrs[!str_detect(chrs, 'hap')]
-  chrs = setdiff(chrs, c('chrM','chrY'))
-
-  gl = lapply(chrs, function(x)genome[[x]])
-  names(gl) = chrs
-  gl = DNAStringSet(gl)
-
-  library(doMC)
-  registerDoMC(20)
-  donefiles = as.character(list.files(path_out_scan_genome))
-
-  foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
-      print(m)
-      mat = matlist[[m]]
-      name = name(mat)
-      if((length(donefiles)==0) || (!name %in% donefiles)){
-
-          print(name)
-          hits  = searchSeq(mat, gl, strand='*', min.score=min.score)
-          ghits = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
-
-          if(!class(ghits) == 'try-error')
-              saveRDS(ghits, file.path(path_out_scan_genome, paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.')))
-      }
-  }
+scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16){
+    
+    library(doMC)
+    library(TFBSTools)
+    library(stringr)
+    gname = str_replace(genome.name,'^.+\\.','')
+    
+    path_out_scan_genome = file.path(outpath, gname)
+    dir.create(path_out_scan_genome, showWarnings=FALSE)
+    
+    genome = GenomeLoader(genome.name)
+    chrs = names(genome)
+    chrs = chrs[!str_detect(chrs, 'Un')]
+    chrs = chrs[!str_detect(chrs, 'random')]
+    chrs = chrs[!str_detect(chrs, 'hap')]
+    chrs = setdiff(chrs, c('chrM','chrY'))
+    
+    gl = lapply(chrs, function(x)genome[[x]])
+    names(gl) = chrs
+    gl = DNAStringSet(gl)
+    
+    registerDoMC(ncores)
+    donefiles = as.character(list.files(path_out_scan_genome))
+    
+    foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
+        print(m)
+        mat = matlist[[m]]
+        name = name(mat)
+        if((length(donefiles)==0) || (!name %in% donefiles)){
+            
+            print(name)
+            hits  = searchSeq(mat, gl, strand='*', min.score=min.score)
+            ghits = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
+            
+            if(!class(ghits) == 'try-error')
+                saveRDS(ghits, file.path(path_out_scan_genome, paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.')))
+        }
+    }
 }
 
 
