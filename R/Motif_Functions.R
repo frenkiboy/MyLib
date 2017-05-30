@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------- #
-parse_MEMEdb = function(infile){
+parse_MEMEdb = function(infile, type='log2probratio'){
     
     library(stringr)
     library(TFBSTools)
@@ -25,13 +25,12 @@ parse_MEMEdb = function(infile){
         
         pfm = PFMatrix(profileMatrix=mat, ID=name[2], name=name[3],
                        matrixClass='transcription factor')
-        pwm = toPWM(mat, type='prob')
+        pwm = toPWM(pfm, type=type)
         matlist[[name[2]]] = pwm
         
     }
     return(matlist)
 }
-
 # ---------------------------------------------------------------------------- #
 extract_Jaspar_Motifs = function(organism, database='JASPAR2017'){
 
@@ -51,7 +50,6 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     library(TFBSTools)
     library(stringr)
     gname = str_replace(genome.name,'^.+\\.','')
-    
     path_out_scan_genome = file.path(outpath, gname)
     dir.create(path_out_scan_genome, showWarnings=FALSE)
     
@@ -69,7 +67,7 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     registerDoMC(ncores)
     donefiles = as.character(list.files(path_out_scan_genome))
     if(remove)
-        donefiles = c()
+        donefiles = vector()
     
     foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
         print(m)
