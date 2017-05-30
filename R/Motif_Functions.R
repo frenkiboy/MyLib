@@ -11,7 +11,7 @@ parse_MEMEdb = function(infile){
   matlist = list()
   for(i in 1:length(mind)){
 
-    message(i)
+    cat(i,'\r')
     ind = mind[i]
     name = unlist(strsplit(r[ind],' '))
     mstart = ind + 3
