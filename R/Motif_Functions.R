@@ -45,7 +45,7 @@ extract_Jaspar_Motifs = function(organism, database='JASPAR2017'){
 
 
 # ---------------------------------------------------------------------------- #
-scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16){
+scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16, remove=FALSE){
     
     library(doMC)
     library(TFBSTools)
@@ -68,6 +68,8 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     
     registerDoMC(ncores)
     donefiles = as.character(list.files(path_out_scan_genome))
+    if(remove)
+        donefiles = c()
     
     foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
         print(m)
@@ -84,6 +86,7 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
         }
     }
 }
+
 
 
 # ---------------------------------------------------------------------------- #
