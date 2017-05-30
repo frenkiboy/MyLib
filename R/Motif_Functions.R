@@ -1,35 +1,36 @@
 # ---------------------------------------------------------------------------- #
-infile='/home/vfranke/bin/Software/MotifDiscovery/meme/db/motif_databases/FLY/fly_factor_survey.meme'
 parse_MEMEdb = function(infile){
-
-  library(stringr)
-  library(TFBSTools)
-
-  r = readLines(infile)
-  mind = which(str_detect(r, 'MOTIF'))
-
-  matlist = list()
-  for(i in 1:length(mind)){
-
-    cat(i,'\r')
-    ind = mind[i]
-    name = unlist(strsplit(r[ind],' '))
-    mstart = ind + 3
-    mend = mstart + (as.numeric(unlist(strsplit(r[ind+2],' '))[6])-1)
-    mat = r[mstart:mend]
-    mat = str_replace_all(mat,'\\t','')
-    mat = do.call(rbind, strsplit(mat,'\\s+'))[,-1]
-    mat = apply(mat, 1, as.numeric)
-    rownames(mat) = c('A','C','G','T')
-
-    pwm = PWMatrix(profileMatrix=mat, ID=name[2], name=name[3],
-                   matrixClass='transcription factor')
-    matlist[[name[2]]] = pwm
-
-  }
-  return(matlist)
+    
+    library(stringr)
+    library(TFBSTools)
+    r = readLines(infile)
+    mind = which(str_detect(r, 'MOTIF'))
+    
+    matlist = list()
+    for(i in 1:length(mind)){
+        
+        cat(i,'\r')
+        ind = mind[i]
+        name = unlist(strsplit(r[ind],' '))
+        mstart = ind + 3
+        mend = mstart + (as.numeric(unlist(strsplit(r[ind+2],' '))[6])-1)
+        mat = r[mstart:mend]
+        mat = str_replace_all(mat,'\\t','')
+        mat = do.call(rbind, strsplit(mat,'\\s+'))[,-1]
+        mat = apply(mat, 1, as.numeric)
+        mat = round(mat*1000)
+        mat = apply(mat,2,as.integer)
+        rownames(mat) = c('A','C','G','T')
+        
+        
+        pfm = PFMatrix(profileMatrix=mat, ID=name[2], name=name[3],
+                       matrixClass='transcription factor')
+        pwm = toPWM(mat, type='prob')
+        matlist[[name[2]]] = pwm
+        
+    }
+    return(matlist)
 }
-
 
 # ---------------------------------------------------------------------------- #
 extract_Jaspar_Motifs = function(organism, database='JASPAR2017'){
