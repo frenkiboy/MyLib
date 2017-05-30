@@ -72,7 +72,7 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
         print(m)
         mat = matlist[[m]]
-        name = name(mat)
+        name = ID(mat)
         if((length(donefiles)==0) || (!name %in% donefiles)){
             
             print(name)
@@ -90,7 +90,11 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
 # ---------------------------------------------------------------------------- #
 parse_ScanGenome = function(inpath, regions){
 
-  scanfiles = list.files(inpath , full.names=TRUE, pattern='rds')
+    if(length(inpath) == 1){
+        scanfiles = list.files(inpath , full.names=TRUE, pattern='rds',recursive=TRUE)
+    }else{
+        scanfiles = inpath
+    }
 
   registerDoMC(16)
   scan.list = list()
@@ -108,7 +112,7 @@ parse_ScanGenome = function(inpath, regions){
   name = basename(scanfiles)
   name = str_replace(name,'.ms.+','')
   names(scan.list) = name
-  return(scanfiles)
+  return(scan.list)
 }
 
 
