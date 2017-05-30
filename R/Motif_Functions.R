@@ -80,7 +80,7 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%'){
           ghits = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
 
           if(!class(ghits) == 'try-error')
-              saveRDS(ghits, file.path(path_out_scan_genome, paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.'))))
+              saveRDS(ghits, file.path(path_out_scan_genome, paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.')))
       }
   }
 }
