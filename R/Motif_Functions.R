@@ -18,7 +18,7 @@ parse_MEMEdb = function(infile, type='log2probratio'){
         mat = str_replace_all(mat,'\\t','')
         mat = do.call(rbind, strsplit(mat,'\\s+'))[,-1]
         mat = apply(mat, 1, as.numeric)
-        mat = round(mat*1000)
+        mat = round(mat*100)
         mat = apply(mat,2,as.integer)
         rownames(mat) = c('A','C','G','T')
         
