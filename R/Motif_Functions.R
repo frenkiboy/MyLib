@@ -88,15 +88,16 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
 
 
 # ---------------------------------------------------------------------------- #
-parse_ScanGenome = function(inpath, regions){
+parse_ScanGenome = function(inpath, regions, ncores=16){
 
+    library(doMC)
     if(length(inpath) == 1){
         scanfiles = list.files(inpath , full.names=TRUE, pattern='rds',recursive=TRUE)
     }else{
         scanfiles = inpath
     }
 
-  registerDoMC(16)
+  registerDoMC(ncores)
   scan.list = list()
   scan.list = foreach(i = 1:length(scanfiles), .inorder=FALSE)%dopar%{
 
