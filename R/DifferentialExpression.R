@@ -341,7 +341,7 @@ get_limma_tab = function(expr, samps, lfc=1, padj=0.05){
   library(limma)
   lm = get_limma(expr, samps)
   cont = makeBinaryContrasts(unique(samps))
-  res = getResults_limma(lm, cont, lfc=lfc, padj=padj)
+  res = getResults_limma(lm, cont, lfc=lfc, pval=padj)
 
 	if(class(expr) == 'expressionSet'){
 
