@@ -296,11 +296,11 @@ get_DifferentialExpression = function(
 
 # ---------------------------------------------------------------------------- #
 
-getResults_limma = function(fit, contrasts, lfc=1, pval=0.05){
+getResults_limma = function(fit, contrasts, lfc=1, pval=0.05, nres=1000000){
     require(data.table)
     message('Results... ')
     ltop = lapply(contrasts, function(x){
-      top = topTable(fit, coef=x, number=100000)
+      top = topTable(fit, coef=x, number=nres)
       top = top[,c('logFC','adj.P.Val')]
       top$diff = diffMark(top, lfc, pval, 1, 2)
       colnames(top)=paste(x,colnames(top),sep='.')
@@ -336,11 +336,11 @@ get_limma = function(eset, samps){
 }
 
 # ---------------------------------------------------------------------------- #
-get_limma_tab = function(expr, samps){
+get_limma_tab = function(expr, samps, lfc=1, padj=0.05){
 
   lm = get_limma(expr, samps)
   cont = makeBinaryContrasts(unique(samps))
-  res = getResults_limma(lm, cont)
+  res = getResults_limma(lm, cont, lfc=lfc, padj=padj)
 
 	if(class(expr) == 'expressionSet'){
 
