@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------- #
-parse_MEMEdb = function(infile, type='log2probratio'){
+parse_MEMEdb = function(infile, type='log2probratio', bg=c(A=.25,C=.25,G=.25,G=.25)){
     
     library(stringr)
     library(TFBSTools)
@@ -25,7 +25,7 @@ parse_MEMEdb = function(infile, type='log2probratio'){
         
         pfm = PFMatrix(profileMatrix=mat, ID=name[2], name=name[3],
                        matrixClass='transcription factor')
-        pwm = toPWM(pfm, type=type)
+        pwm = toPWM(pfm, type=type, bg=bg)
         matlist[[name[2]]] = pwm
         
     }
