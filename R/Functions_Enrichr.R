@@ -25,7 +25,7 @@
     'CORUM',
     'ESCAPE',
     'Tissue_Protein_Expression_from_ProteomicsDB',
-    'TF-LOF_Expression_from_GEO,'
+    'TF-LOF_Expression_from_GEO',
     'Panther_2016',
     'Genome_Browser_PWMs')
 
