@@ -22,7 +22,12 @@
     'TargetScan_microRNA',
     'Epigenomics_Roadmap_HM_ChIP-seq',
     'ENCODE_TF_ChIP-seq_2015',
-    'CORUM')
+    'CORUM',
+    'ESCAPE',
+    'Tissue_Protein_Expression_from_ProteomicsDB',
+    'TF-LOF_Expression_from_GEO'
+    'Panther_2016',
+    'Genome_Browser_PWMs')
 
 get_Enrichr_list = function(gene.lists){
     
