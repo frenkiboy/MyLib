@@ -12,7 +12,7 @@
 #' @return f function output
 #' @export
 source(file.path(lib.path, 'Decorate.R'))
-checkLoad = decorator %@% function(f, inpath='./'){
+cacheFile = decorator %@% function(f, inpath='./'){
 
     library(digest)
     fname = deparse(substitute(f))
@@ -21,7 +21,7 @@ checkLoad = decorator %@% function(f, inpath='./'){
         outfile = file.path(inpath,paste(fname,'rds',sep='.'))
         if(load && file.exists(outfile)){
             message('Returning loaded data ...')
-            return(readRDS(outfile))
+            readRDS(outfile)
        }else{
            message('Running function ...')
             dat = f(...)
