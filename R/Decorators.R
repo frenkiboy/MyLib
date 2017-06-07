@@ -12,11 +12,11 @@
 #' @return f function output
 #' @export
 source(file.path(lib.path, 'Decorate.R'))
-cacheFile = decorator %@% function(f, inpath='./'){
+cacheFile = decorator %@% function(f){
 
     library(digest)
     fname = deparse(substitute(f))
-    function(..., load=TRUE){
+    function(...,inpath='./', load=TRUE){
         print(match.call())
         outfile = file.path(inpath,paste(fname,'rds',sep='.'))
         if(load && file.exists(outfile)){
