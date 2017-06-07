@@ -11,7 +11,8 @@
 
 #' @return f function output
 #' @export
-checkLoad = function(f, inpath='./'){
+source(file.path(lib.path, 'Decorate.R'))
+checkLoad = decorator %@% function(f, inpath='./'){
 
     library(digest)
     fname = deparse(substitute(f))
