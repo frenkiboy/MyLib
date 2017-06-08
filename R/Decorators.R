@@ -19,10 +19,10 @@ cacheFile = function(inpath)decorator %@% function(f){
         fname = as.character(match.call()[[1]])
         outfile = file.path(inpath,paste(fname,'rds',sep='.'))
         if(load && file.exists(outfile)){
-            print('Returning loaded data ...')
+            print(paste0(fname,': Returning loaded data ...'))
             readRDS(outfile)
        }else{
-           print('Running function ...')
+           print(paste0(fname,': Running function ...'))
             dat = f(...)
 
             saveRDS(dat, outfile)
