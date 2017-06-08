@@ -17,13 +17,12 @@ cacheFile = decorator %@% function(f){
     library(digest)
     fname = deparse(substitute(f))
     function(...,inpath='./', load=TRUE){
-        print(match.call())
         outfile = file.path(inpath,paste(fname,'rds',sep='.'))
         if(load && file.exists(outfile)){
-            message('Returning loaded data ...')
+            print('Returning loaded data ...')
             readRDS(outfile)
        }else{
-           message('Running function ...')
+           print('Running function ...')
             dat = f(...)
 
             saveRDS(dat, outfile)
