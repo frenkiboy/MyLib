@@ -314,7 +314,7 @@ getResults_limma = function(fit, contrasts, lfc=1, pval=0.05, nres=1000000){
 }
 
 # ---------------------------------------------------------------------------- #
-get_limma = function(eset, samps){
+get_limma = function(eset, samps, method='ls'){
 
   message('Contrasts... ')
   cont=makeBinaryContrasts(samps)
@@ -328,7 +328,7 @@ get_limma = function(eset, samps){
 
 
   message('Fit... ')
-  fit  = lmFit(eset, design)
+  fit  = lmFit(eset, design, method=method)
   fit2 = contrasts.fit(fit, contrast.matrix)
   message('eBayes... ')
   fit2 = eBayes(fit2, robust=TRUE)
@@ -336,10 +336,10 @@ get_limma = function(eset, samps){
 }
 
 # ---------------------------------------------------------------------------- #
-get_limma_tab = function(expr, samps, lfc=1, padj=0.05){
+get_limma_tab = function(expr, samps, lfc=1, padj=0.05, method='ls'){
 
   library(limma)
-  lm = get_limma(expr, samps)
+  lm = get_limma(expr, samps, method=method)
   cont = makeBinaryContrasts(unique(samps))
   res = getResults_limma(lm, cont, lfc=lfc, pval=padj)
 
