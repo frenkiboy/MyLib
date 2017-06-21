@@ -372,21 +372,3 @@ setMethod("Get_Annotation",signature("GRanges"),
 })
 
 
-# ---------------------------------------------------------------------------- #
-read_Annotation = function(annot){
-
-   library(genomation)
-   source(file.path(lib.path, 'Read_Annotation.R'))
-   annotation = list()
-   if(!is.null(annot$cpg))
-       annotation$cpg  = readGeneric(annot$cpg, header=FALSE, skip=1)
-
-   if(!is.null(annot$gtf))
-       annotation$gtf  = ReadGTFAnnotation(annot$gtf)
-
-   if(!is.null(annot$repeats))
-       annotation$reps = readRDS(annot$reps)
-
-   return(annotation)
-}
-
