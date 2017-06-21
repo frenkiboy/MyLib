@@ -314,50 +314,56 @@ getResults_limma = function(fit, contrasts, lfc=1, pval=0.05, nres=1000000){
 }
 
 # ---------------------------------------------------------------------------- #
-get_limma = function(eset, samps, method='ls'){
-
-  message('Contrasts... ')
-  cont=makeBinaryContrasts(samps)
-  contrast.matrix = makeContrasts(contrasts=cont,
-                                  levels=unique(samps))
-
-  message('Design... ')
-  design = model.matrix(~0+samps)
-  colnames(design) = str_replace(colnames(design),'samps','')
-  design = design[,match(rownames(contrast.matrix), colnames(design))]
-
-
-  message('Fit... ')
-  fit  = lmFit(eset, design, method=method)
-  fit2 = contrasts.fit(fit, contrast.matrix)
-  message('eBayes... ')
-  fit2 = eBayes(fit2, robust=TRUE)
-  return(fit2)
+get_limma_tab=function(expr, samps, lfc=1, padj=0.05, method='ls', covar=NULL){
+    
+    library(limma)
+    lm = get_limma(expr, samps, method=method, covar=covar)
+    cont = makeBinaryContrasts(unique(samps))
+    res = getResults_limma(lm, cont, lfc=lfc, pval=padj)
+    
+    if(class(expr) == 'expressionSet'){
+        
+        dat = as(featureData(expr),'data.frame') %>%
+            dplyr::select(1,9,10,11)
+        colnames(dat) = str_replace(colnames(dat),' ','_')
+        colnames(dat) = tolower(colnames(dat))
+        means = getMeans(exprs(expr), samps, unique=FALSE)
+        means$id = rownames(means)
+        tab = merge(dat, res, by='id')
+    }else{
+        means = getMeans(expr, samps, unique=FALSE)
+        means$id = rownames(means)
+        tab = res
+    }
+    
+    tab = merge(tab, means, by='id')
+    return(tab)
 }
+
 
 # ---------------------------------------------------------------------------- #
-get_limma_tab = function(expr, samps, lfc=1, padj=0.05, method='ls'){
-
-  library(limma)
-  lm = get_limma(expr, samps, method=method)
-  cont = makeBinaryContrasts(unique(samps))
-  res = getResults_limma(lm, cont, lfc=lfc, pval=padj)
-
-	if(class(expr) == 'expressionSet'){
-
-		dat = as(featureData(expr),'data.frame') %>%
-		dplyr::select(1,9,10,11)
-		colnames(dat) = str_replace(colnames(dat),' ','_')
-		colnames(dat) = tolower(colnames(dat))
-		means = getMeans(exprs(expr), samps, unique=FALSE)
-		means$id = rownames(means)
-  		tab = merge(dat, res, by='id')
-	}else{
-		means = getMeans(expr, samps, unique=FALSE)
-		means$id = rownames(means)
-		tab = res
-	}
-
-  tab = merge(tab, means, by='id')
-  return(tab)
+get_limma = function(eset, samps, method='ls', covar=NULL){
+    
+    message('Contrasts... ')
+    cont=makeBinaryContrasts(samps)
+    contrast.matrix = makeContrasts(contrasts=cont,
+                                    levels=unique(samps))
+    
+    message('Design... ')
+    design = model.matrix(~0+samps)
+    colnames(design) = str_replace(colnames(design),'samps','')
+    design = design[,match(rownames(contrast.matrix), colnames(design))]
+    if(!is.null(covar)){
+        design = cbind(design,covar)
+        contrast.matrix = rbind(contrast.matrix,matrix(0, nrow=ncol(covar), ncol=ncol(contrast.matrix)))
+    }
+    
+    
+    message('Fit... ')
+    fit  = lmFit(eset, design, method=method)
+    fit2 = contrasts.fit(fit, contrast.matrix)
+    message('eBayes... ')
+    fit2 = eBayes(fit2, robust=TRUE)
+    return(fit2)
 }
+
