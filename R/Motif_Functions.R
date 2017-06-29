@@ -69,18 +69,27 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     if(remove)
         donefiles = vector()
     
+    
     foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
         print(m)
         mat = matlist[[m]]
         name = ID(mat)
-        if((length(donefiles)==0) || (!name %in% donefiles)){
+        outname = paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.')
+        if((length(donefiles)==0) || (!outname %in% donefiles)){
             
             print(name)
-            hits  = searchSeq(mat, gl, strand='*', min.score=min.score)
-            ghits = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
+            hits.p  = searchSeq(mat, gl, strand='+', min.score=min.score)
+            hits.m  = searchSeq(mat, gl, strand='-', min.score=min.score)
+            ghits.p = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
+            ghits.m = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
+            ghits = GRanges()
+            if(!is.na(ghits.p))
+                ghits = c(ghits, ghits.p)
+            if(!is.na(ghits.m))
+                ghits = c(ghits, ghits.m)
             
-            if(!class(ghits) == 'try-error')
-                saveRDS(ghits, file.path(path_out_scan_genome, paste(name, 'ms',str_replace(min.score,'%',''), 'rds', sep='.')))
+            if(length(ghits) > 1)
+                saveRDS(ghits, file.path(path_out_scan_genome, outname))
         }
     }
 }
