@@ -49,9 +49,12 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     library(doMC)
     library(TFBSTools)
     library(stringr)
+    
+    source(file.path(lib.path, 'FileLoader.R'), local=TRUE)
     gname = str_replace(genome.name,'^.+\\.','')
     path_out_scan_genome = file.path(outpath, gname)
     dir.create(path_out_scan_genome, showWarnings=FALSE)
+    
     
     genome = GenomeLoader(genome.name)
     chrs = names(genome)
@@ -69,7 +72,6 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
     if(remove)
         donefiles = vector()
     
-    
     foreach(m = 1:length(matlist), .errorhandling='remove')%dopar%{
         print(m)
         mat = matlist[[m]]
@@ -80,8 +82,8 @@ scan_Genome = function(matlist, genome.name, outpath, min.score='80%', ncores=16
             print(name)
             hits.p  = searchSeq(mat, gl, strand='+', min.score=min.score)
             hits.m  = searchSeq(mat, gl, strand='-', min.score=min.score)
-            ghits.p = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
-            ghits.m = try(unlist(GRangesList( lapply(hits, function(x)as(x,'GRanges')))))
+            ghits.p = try(unlist(GRangesList( lapply(hits.p, function(x)as(x,'GRanges')))))
+            ghits.m = try(unlist(GRangesList( lapply(hits.m, function(x)as(x,'GRanges')))))
             ghits = GRanges()
             if(!is.na(ghits.p))
                 ghits = c(ghits, ghits.p)
