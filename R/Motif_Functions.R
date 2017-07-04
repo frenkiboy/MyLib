@@ -117,9 +117,11 @@ parse_ScanGenome = function(inpath, regions, ncores=16){
       message(name)
 
       scan = readRDS(scanfile)
-      scan.sel = scan[countOverlaps(scan,regions, ignore.strand=TRUE) > 0]
-      message(paste('left:',round(length(scan.sel)/length(scan),3)))
-      return(scan.sel)
+      if(length(scan)>0){
+        scan.sel = scan[countOverlaps(scan,regions, ignore.strand=TRUE) > 0]
+        message(paste('left:',round(length(scan.sel)/length(scan),3)))
+        return(scan.sel)
+      }
   }
   name = basename(scanfiles)
   name = str_replace(name,'.ms.+','')
