@@ -11,22 +11,57 @@
 
 #' @return f function output
 #' @export
+#' @examples
+#' source(file.path(lib.path, 'Decorate.R'))
+#' f = function(x=1,y=2)x
+#' g = cacheFile('./') %@% f
+#' g(2,3)
+#' g(2,3)
+#' 
+#' g(x=2,y=3)
+#' g(x=2,y=3)
 source(file.path(lib.path, 'Decorate.R'))
 cacheFile = function(inpath)decorator %@% function(f){
 
-    library(digest)
-    function(..., load=TRUE){
-        fname = as.character(match.call()[[1]])
-        outfile = file.path(inpath,paste(fname,'rds',sep='.'))
+    library(digest)       
+    argnames = head(as.list(args(as.list(environment())[[1]])),-1)
+    function(..., load=TRUE, .anames = argnames){
+        
+        fcall = as.list(match.call())
+        fname = fcall[[1]]
+        args  = head(fcall[-1],-1)
+        
+        # finds out the function arguments and creates the argument hash
+        if(!is.null(names(args))){
+            named_args = setdiff(names(args),'')
+            if(!is.null(named_args))
+                for(i in named_args)
+                    .anames[[i]] = args[[i]]
+            
+            pos_args = which(names(args) == '')
+            if(length(pos_args) > 0)
+                for(i in pos_args)
+                    .anames[[i]] = args[[i]]
+        }else{
+            for(i in seq_along(args))
+                .anames[[i]] = args[[i]]
+        }
+        args_hash = digest(.anames)
+            
+        outfile = file.path(inpath,paste(fname, args_hash, 'rds', sep='.'))
         if(load && file.exists(outfile)){
             print(paste0(fname,': Returning loaded data ...'))
-            readRDS(outfile)
+            print(outfile)
+            readRDS(outfile)$dat
        }else{
-           print(paste0(fname,': Running function ...'))
+            print(paste0(fname,': Running function ...'))
             dat = f(...)
 
-            saveRDS(dat, outfile)
+            saveRDS(list(dat=dat, args=.anames), outfile)
             dat
         }
     }
 }
+
+
+
