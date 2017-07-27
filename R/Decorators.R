@@ -55,6 +55,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         }
         hashlist = list(anames = .anames, body=.fbody)
         args_hash = digest(hashlist)
+        print(args_hash)
 
         outfile = file.path(inpath,paste(fname, args_hash, 'rds', sep='.'))
         if(load && file.exists(outfile)){
