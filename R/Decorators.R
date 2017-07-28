@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------ #
+# ---------------------------------------------------------------------------- #
 #' checkLoad - function decorator to save function output
 #' checkLoad is a function decorator which saves the output of a function to an RDS object
 #' TODO
@@ -21,6 +21,17 @@
 #' g(x=2,y=3)
 #' g(x=2,y=3)
 
+# All should give the same hash
+#' a = 3
+#' f = function(x=1,y=a)x
+#' g = cacheFile('./') %@% f
+#' g(2)
+#' g(2,3)
+#' g(x=2,y=3)
+#' g(x=2,3)
+#' g(2,y=3)
+
+
 #' f = function(x=1,y=2){x;print(y);x+y}
 #' g = cacheFile('./') %@% f
 #' g(2,3)
@@ -31,14 +42,19 @@ cacheFile = function(inpath)decorator %@% function(f){
 
     library(digest)
     argnames = head(as.list(args(as.list(environment())[[1]])),-1)
-    body = as.list(body(f))
+    body = lapply(as.list(body(f)), as.character)
     function(..., load=TRUE, .anames = argnames, .fbody=body){
 
+        # -------------------------------------------------------------------- #
         fcall = as.list(match.call())
+        
+        # extracts the function name
         fname = fcall[[1]]
-        args  = head(fcall[-1],-1)
-
-        # finds out the function arguments and creates the argument hash
+        
+        # removes the funciton name from the call
+        args  = fcall[-1]
+        
+        # replaces default arguments with set arguments
         if(!is.null(names(args))){
             named_args = setdiff(names(args),'')
             if(!is.null(named_args))
@@ -53,10 +69,23 @@ cacheFile = function(inpath)decorator %@% function(f){
             for(i in seq_along(args))
                 .anames[[i]] = args[[i]]
         }
-        hashlist = list(anames = .anames, body=.fbody)
-        args_hash = digest(hashlist)
-        print(args_hash)
+        
+        # evaluates global variables from .anames
+        .anames = lapply(.anames, function(x){
+            if(is.name(x)){
+                eval(x)
+            }else{
+                x
+            }
+        })
 
+        # -------------------------------------------------------------------- #
+        # creates the argument hash
+        hashlist = list(anames = .anames, body = .fbody)
+        args_hash = digest(hashlist, algo='md5')
+        print(args_hash)
+        
+        # -------------------------------------------------------------------- #
         outfile = file.path(inpath,paste(fname, args_hash, 'rds', sep='.'))
         if(load && file.exists(outfile)){
             print(paste0(fname,': Returning loaded data ...'))
@@ -71,3 +100,4 @@ cacheFile = function(inpath)decorator %@% function(f){
         }
     }
 }
+
