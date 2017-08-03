@@ -222,6 +222,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
 #' @param merge_id name of id column in the annotation which is used for counting 
 #' (gene_id, transcript_id)
 #' @param annotation gene annotation
+#' @param name
 #' @param lfc desired absolute log2 fold change threshold
 #' @param padj desired adjusted p value threshold
 #'
@@ -240,6 +241,7 @@ get_DifferentialExpression = function(
     singleEnd=TRUE,
     invertStrand=FALSE,
     merge_id = 'transcript_id',
+    name=NULL,
     annotation=NULL,
     lfc=1,
     padj=0.01
