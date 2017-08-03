@@ -184,8 +184,8 @@ plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
 #' @param singleEnd is the data single end
 #'
 #' @return SummarizedExperiment object
-source(file.path(lib.path, 'Decorate.R'))
-source(file.path(lib.path, 'Decorators.R'))
+source(file.path(lib.path, 'Decorate.R'),   local=TRUE)
+source(file.path(lib.path, 'Decorators.R'), local=TRUE)
 count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                bamfiles,
                                                param,
