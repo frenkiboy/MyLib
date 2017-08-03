@@ -172,7 +172,59 @@ plotDESeqDiagnostics = function(dds, contrasts, outpath, name){
     message('Finished!')
 }
 
+
 # ---------------------------------------------------------------------------- #
+
+#' count_Reads - a decorated wrapper for SummarizeOverlaps
+#'
+#' @param ranges GRangesList
+#' @param bamfiles absolute path to a set of bamfiles
+#' @param param counting parameters
+#' @param preprocess.reads function to apply to reads before counting
+#' @param singleEnd is the data single end
+#'
+#' @return SummarizedExperiment object
+source(file.path(lib.path, 'Decorate.R'))
+source(file.path(lib.path, 'Decorators.R'))
+count_Reads = cacheFile(path_RDS) %@% function(ranges,
+                                               bamfiles,
+                                               param,
+                                               preprocess.reads,
+                                               singleEnd){
+    summarizeOverlaps(ranges, 
+                      bamfiles,
+                      ignore.strand=ignore.strand,
+                      param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
+                      preprocess.reads=preprocess.reads,
+                      singleEnd=singleEnd)
+    
+}
+
+
+#' get_DifferentialExpression Function which takes ranges and reads and 
+#' calculates differential expression
+#'
+#' @param trans GRangesList containing the ranges of interest
+#' @param bamfiles Absolute path to bam files
+#' @param coldata data.frame with the a column named Factor - contains
+#' the desired comparison variable
+#' @param design design of the linear model
+#' @param nreads minimum number of reads in nsamp that a gene has to have
+#' @param nsamp number of samples in which a gene needs to have at least nreads
+#' @param contlist list containing desired contrasts (which factor levels to compare)
+#' @param ignore.strand logical, whether the data is stranded
+#' @param independent.filtering logical whether to use DESeq independent filtering
+#' @param betaPrior logical whether to use priors on log fold change
+#' @param preprocess.reads a function used to pre-process the reads
+#' @param singleEnd logical, whether the data is single or pair end
+#' @param invertStrand logical, whether to invert the strand of the transcripts 
+#' (used for some RNAseq protocols)
+#' @param merge_id name of id column in the annotation which is used for counting 
+#' (gene_id, transcript_id)
+#' @param annotation gene annotation
+#' @param lfc desired absolute log2 fold change threshold
+#' @param padj desired adjusted p value threshold
+#'
 get_DifferentialExpression = function(
     trans,
     bamfiles,
@@ -189,10 +241,6 @@ get_DifferentialExpression = function(
     invertStrand=FALSE,
     merge_id = 'transcript_id',
     annotation=NULL,
-    outpath,
-    name,
-    cnts.name=NULL,
-    load=FALSE,
     lfc=1,
     padj=0.01
 	){
@@ -221,24 +269,18 @@ get_DifferentialExpression = function(
     if(is.null(design))
         design = formula('~Factor')
 
-    outfile=file.path(outpath, paste(name, 'Cnts', 'rds', sep='.'))
-    if(load){
-      message('Loading...')
-      txhits=readRDS(outfile)
-    }else{
-      message('Summarize...')
-      ranges=trans
-      if(invertStrand)
-	ranges = invertStrand(ranges)
-      txhits = summarizeOverlaps(ranges, BamFileList(bamfiles),
-                                 ignore.strand=ignore.strand,
-                                 param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
-                                 preprocess.reads=preprocess.reads,
-				 singleEnd=singleEnd)
-      message('Saving...')
-      saveRDS(txhits, outfile)
-    }
-
+    message('Summarize...')
+    ranges=trans
+    if(invertStrand)
+	    ranges = invertStrand(ranges)
+    txhits = count_Reads(ranges, 
+                         BamFileList(bamfiles),
+                         ignore.strand=ignore.strand,
+                         param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
+                         preprocess.reads=preprocess.reads,
+                         singleEnd=singleEnd)
+      
+      
 
     message('DES...')
     colData(txhits) = DataFrame(coldata)
