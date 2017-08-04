@@ -223,6 +223,8 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
 #' @param merge_id name of id column in the annotation which is used for counting 
 #' (gene_id, transcript_id)
 #' @param annotation gene annotation
+#' @param cnts.name colum from the coldata to use as the counts column name. 
+#' bam file names are taken by default
 #' @param name
 #' @param lfc desired absolute log2 fold change threshold
 #' @param padj desired adjusted p value threshold
@@ -242,6 +244,7 @@ get_DifferentialExpression = function(
     singleEnd=TRUE,
     invertStrand=FALSE,
     merge_id = 'transcript_id',
+    cnts.name=NULL,
     name=NULL,
     annotation=NULL,
     lfc=1,
@@ -293,7 +296,7 @@ get_DifferentialExpression = function(
     if(!is.null(cnts.name)){
         colnames(ass) = coldata[[cnts.name]]
     }else{
-	colnames(ass) = BamName(bamfiles)
+	    colnames(ass) = BamName(bamfiles)
     } 
     dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
     des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
