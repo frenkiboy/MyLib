@@ -188,6 +188,7 @@ source(file.path(lib.path, 'Decorate.R'),   local=TRUE)
 source(file.path(lib.path, 'Decorators.R'), local=TRUE)
 count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                bamfiles,
+                                               ignore.strand,
                                                param,
                                                preprocess.reads,
                                                singleEnd){
