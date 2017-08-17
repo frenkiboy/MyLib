@@ -40,7 +40,7 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
     gtf.annot$twidth = sum(width(gtf.exon.tr))[gtf.annot$transcript_id]
 
 
-    return(list(gtf=gtf,
+    return(list(gtf=gtf.exon,
                 gtf.sel = gtf.selected,
                 gtf.union=gtf.union,
                 annot=gtf.annot))
@@ -64,4 +64,3 @@ read_Annotation = function(annot){
 
    return(annotation)
 }
-

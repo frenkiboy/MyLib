@@ -107,7 +107,7 @@ parse_ScanGenome = function(inpath, regions, ncores=16){
     }else{
         scanfiles = inpath
     }
-
+    
   registerDoMC(ncores)
   scan.list = list()
   scan.list = foreach(i = 1:length(scanfiles), .inorder=FALSE)%dopar%{

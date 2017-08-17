@@ -285,8 +285,6 @@ get_DifferentialExpression = function(
                          param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
                          preprocess.reads=preprocess.reads,
                          singleEnd=singleEnd)
-      
-      
 
     message('DES...')
     colData(txhits) = DataFrame(coldata)
@@ -415,3 +413,17 @@ get_limma = function(eset, samps, method='ls', covar=NULL){
     return(fit2)
 }
 
+# ---------------------------------------------------------------------------- #
+#' resizeReads - resizes reads before counting. Used in summarizeOverlaps/count_Reads
+#'
+#' @param reads reads to be resized
+#' @param width with to resize to
+#' @param fix   which end of the reads should be fixed
+#' @param ... 
+#'
+#' @return reads
+resizeReads <- function(reads, width=1, fix="start", ...) {
+    reads <- as(reads, "GRanges")
+    stopifnot(all(strand(reads) != "*"))
+    resize(reads, width=width, fix=fix, ...)
+}

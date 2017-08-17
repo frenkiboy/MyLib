@@ -127,5 +127,9 @@ cacheFile = function(inpath)decorator %@% function(f){
 #     t4.2 = g(.load=TRUE)
 #     testthat::expect_message(g(.load=TRUE), "g: Returning loaded data ...")
 #     testthat::expect_equal(t4.1, t4.2)
+
+      # 4. different calling arguments
+      # 5. different function body
+
 # }
 
