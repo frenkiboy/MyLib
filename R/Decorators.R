@@ -36,6 +36,12 @@
 #' f = function(x=1,y=2){x;print(y);x+y}
 #' g = cacheFile('./') %@% f
 #' g(2,3)
+#' 
+#' 
+#' l = list(x=1:10, y=5:10)
+#' f = cacheFile('./') %@% function(x)print(x)
+#' lapply(l, f)
+#' 
 
 source(file.path(lib.path, 'Decorate.R'))
 cacheFile = function(inpath)decorator %@% function(f){
@@ -73,13 +79,10 @@ cacheFile = function(inpath)decorator %@% function(f){
         }
         
         # evaluates global variables from .anames
-        .anames = lapply(.anames, function(x){
-            if(is.name(x)){
-                eval(x)
-            }else{
-                x
-            }
-        })
+        for(i in 1:length(.anames)){
+            if(is.name(.anames[[i]]))
+               .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
+        }
 
         # -------------------------------------------------------------------- #
         # creates the argument hash
@@ -102,6 +105,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         }
     }
 }
+
 
 # ---------------------------------------------------------------------------- #
 # deorator tests
