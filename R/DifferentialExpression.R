@@ -191,13 +191,12 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                ignore.strand = FALSE,
                                                param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
                                                preprocess.reads=NULL,
-                                               singleEnd=TRUE
-                                               
+                                               singleEnd=TRUE,
+                                               ...
                                                ){
     library(GenomicAlignments)
     library(Rsamtools)
     
-  
     message('Counting ...')
     summarizeOverlaps(ranges,
                       bamfiles,
