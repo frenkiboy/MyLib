@@ -202,7 +202,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                       bamfiles,
                       ignore.strand    = ignore.strand,
                       param            = param,
-                      singleEnd        = singleEnd
+                      singleEnd        = singleEnd,
                       preprocess.reads = preprocess.reads,
                       ...)
     
