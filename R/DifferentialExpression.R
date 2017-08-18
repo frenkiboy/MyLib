@@ -197,7 +197,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
     summarizeOverlaps(ranges, 
                       bamfiles,
                       ignore.strand=ignore.strand,
-                      param=param),
+                      param=param,
                       preprocess.reads=preprocess.reads,
                       singleEnd=singleEnd)
     
