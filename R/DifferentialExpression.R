@@ -188,18 +188,21 @@ source(file.path(lib.path, 'Decorate.R'),   local=TRUE)
 source(file.path(lib.path, 'Decorators.R'), local=TRUE)
 count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                bamfiles,
-                                               ignore.strand,
+                                               ignore.strand = FALSE,
                                                param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
-                                               preprocess.reads,
-                                               singleEnd){
+                                               preprocess.reads=NULL,
+                                               singleEnd=TRUE,
+                                               ...){
     library(GenomicAlignments)
     library(Rsamtools)
+    message('Counting ...')
     summarizeOverlaps(ranges, 
                       bamfiles,
                       ignore.strand=ignore.strand,
                       param=param,
                       preprocess.reads=preprocess.reads,
-                      singleEnd=singleEnd)
+                      singleEnd=singleEnd,
+                      ...)
     
 }
 
