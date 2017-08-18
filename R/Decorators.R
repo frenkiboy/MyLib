@@ -80,7 +80,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         
         # evaluates global variables from .anames
         for(i in 1:length(.anames)){
-            if(is.call(.anames[[i]])){
+            if(is.call(.anames[[i]]) | is.call(.anames[[i]])){
                .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
             }
         }
