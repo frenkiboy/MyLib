@@ -80,10 +80,10 @@ cacheFile = function(inpath)decorator %@% function(f){
         
         # evaluates global variables from .anames
         for(i in 1:length(.anames)){
-            if(is.name(.anames[[i]]))
+            if(is.call(.anames[[i]])){
                .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
+            }
         }
-
         # -------------------------------------------------------------------- #
         # creates the argument hash
         hashlist = list(anames = .anames, body = .fbody)
@@ -105,7 +105,6 @@ cacheFile = function(inpath)decorator %@% function(f){
         }
     }
 }
-
 
 # ---------------------------------------------------------------------------- #
 # deorator tests
