@@ -192,11 +192,13 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
                                                preprocess.reads=NULL,
                                                singleEnd=TRUE,
+                                               inter.feature=TRUE,
+                                               mode='Union'
                                                ...
                                                ){
     library(GenomicAlignments)
     library(Rsamtools)
-    
+
     message('Counting ...')
     summarizeOverlaps(ranges,
                       bamfiles,
@@ -204,12 +206,14 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                       param            = param,
                       singleEnd        = singleEnd,
                       preprocess.reads = preprocess.reads,
+                      inter.feature    = inter.feature,
+                      mode             = mode,
                       ...)
-    
+
 }
 
 
-#' get_DifferentialExpression Function which takes ranges and reads and 
+#' get_DifferentialExpression Function which takes ranges and reads and
 #' calculates differential expression
 #'
 #' @param trans GRangesList containing the ranges of interest
@@ -225,12 +229,12 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
 #' @param betaPrior logical whether to use priors on log fold change
 #' @param preprocess.reads a function used to pre-process the reads
 #' @param singleEnd logical, whether the data is single or pair end
-#' @param invertStrand logical, whether to invert the strand of the transcripts 
+#' @param invertStrand logical, whether to invert the strand of the transcripts
 #' (used for some RNAseq protocols)
-#' @param merge_id name of id column in the annotation which is used for counting 
+#' @param merge_id name of id column in the annotation which is used for counting
 #' (gene_id, transcript_id)
 #' @param annotation gene annotation
-#' @param cnts.name colum from the coldata to use as the counts column name. 
+#' @param cnts.name colum from the coldata to use as the counts column name.
 #' bam file names are taken by default
 #' @param name
 #' @param lfc desired absolute log2 fold change threshold
@@ -286,7 +290,7 @@ get_DifferentialExpression = function(
     ranges=trans
     if(invertStrand)
 	    ranges = invertStrand(ranges)
-    txhits = count_Reads(ranges, 
+    txhits = count_Reads(ranges,
                          BamFileList(bamfiles),
                          ignore.strand=ignore.strand,
                          param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
@@ -297,12 +301,12 @@ get_DifferentialExpression = function(
     colData(txhits) = DataFrame(coldata)
     ass = assays(txhits)[[1]]
     ass = ass[rowSums(ass > nreads)>nsamp,]
-    
+
     if(!is.null(cnts.name)){
         colnames(ass) = coldata[[cnts.name]]
     }else{
 	    colnames(ass) = BamName(bamfiles)
-    } 
+    }
     dds = DESeqDataSetFromMatrix(ass, colData=coldata, design=design)
     des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
     colnames(des) = colnames(ass)
@@ -368,14 +372,14 @@ getResults_limma = function(fit, contrasts, lfc=1, pval=0.05, nres=1000000){
 
 # ---------------------------------------------------------------------------- #
 get_limma_tab=function(expr, samps, lfc=1, padj=0.05, method='ls', covar=NULL){
-    
+
     library(limma)
     lm = get_limma(expr, samps, method=method, covar=covar)
     cont = makeBinaryContrasts(unique(samps))
     res = getResults_limma(lm, cont, lfc=lfc, pval=padj)
-    
+
     if(class(expr) == 'expressionSet'){
-        
+
         dat = as(featureData(expr),'data.frame') %>%
             dplyr::select(1,9,10,11)
         colnames(dat) = str_replace(colnames(dat),' ','_')
@@ -388,7 +392,7 @@ get_limma_tab=function(expr, samps, lfc=1, padj=0.05, method='ls', covar=NULL){
         means$id = rownames(means)
         tab = res
     }
-    
+
     tab = merge(tab, means, by='id')
     return(tab)
 }
@@ -396,12 +400,12 @@ get_limma_tab=function(expr, samps, lfc=1, padj=0.05, method='ls', covar=NULL){
 
 # ---------------------------------------------------------------------------- #
 get_limma = function(eset, samps, method='ls', covar=NULL){
-    
+
     message('Contrasts... ')
     cont=makeBinaryContrasts(samps)
     contrast.matrix = makeContrasts(contrasts=cont,
                                     levels=unique(samps))
-    
+
     message('Design... ')
     design = model.matrix(~0+samps)
     colnames(design) = str_replace(colnames(design),'samps','')
@@ -410,8 +414,8 @@ get_limma = function(eset, samps, method='ls', covar=NULL){
         design = cbind(design,covar)
         contrast.matrix = rbind(contrast.matrix,matrix(0, nrow=ncol(covar), ncol=ncol(contrast.matrix)))
     }
-    
-    
+
+
     message('Fit... ')
     fit  = lmFit(eset, design, method=method)
     fit2 = contrasts.fit(fit, contrast.matrix)
@@ -426,7 +430,7 @@ get_limma = function(eset, samps, method='ls', covar=NULL){
 #' @param reads reads to be resized
 #' @param width with to resize to
 #' @param fix   which end of the reads should be fixed
-#' @param ... 
+#' @param ...
 #'
 #' @return reads
 resizeReads <- function(reads, width=1, fix="start", ...) {
