@@ -36,16 +36,16 @@
 #' f = function(x=1,y=2){x;print(y);x+y}
 #' g = cacheFile('./') %@% f
 #' g(2,3)
-#' 
-#' 
+#'
+#'
 #' l = list(x=1:10, y=5:10)
 #' f = cacheFile('./') %@% function(x)print(x)
 #' lapply(l, f)
-#' 
+#'
 
 source(file.path(lib.path, 'Decorate.R'))
 cacheFile = function(inpath)decorator %@% function(f){
-    
+
     library(digest)
     argnames = head(as.list(args(as.list(environment())[[1]])),-1)
     body = lapply(as.list(body(f)), as.character)
@@ -53,10 +53,10 @@ cacheFile = function(inpath)decorator %@% function(f){
 
         # -------------------------------------------------------------------- #
         fcall = as.list(match.call())
-        
+    
         # extracts the function name
         fname = fcall[[1]]
-        
+
         # removes the funciton name from the call
         args  = fcall[-1]
         if(!is.null(names(args)) && any(names(args) == '.load'))
@@ -77,11 +77,13 @@ cacheFile = function(inpath)decorator %@% function(f){
             for(i in seq_along(args))
                 .anames[[i]] = args[[i]]
         }
-        
+
         # evaluates global variables from .anames
-        for(i in 1:length(.anames)){
-            if(is.call(.anames[[i]]) | is.call(.anames[[i]])){
-               .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
+        if(length(args) > 0){
+            for(i in 1:length(.anames)){
+                if(is.call(.anames[[i]]) | is.call(.anames[[i]])){
+                   .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
+                }
             }
         }
         # -------------------------------------------------------------------- #
@@ -89,7 +91,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         hashlist = list(anames = .anames, body = .fbody)
         args_hash = digest(hashlist, algo='md5')
         message(args_hash)
-        
+
         # -------------------------------------------------------------------- #
         outfile = file.path(inpath,paste(fname, args_hash, 'rds', sep='.'))
         if(.load && file.exists(outfile)){
@@ -109,22 +111,22 @@ cacheFile = function(inpath)decorator %@% function(f){
 # ---------------------------------------------------------------------------- #
 # deorator tests
 # testthat::test_that('cacheDecorator'){
-#     
-#     # 1. test that the cache works 
+#
+#     # 1. test that the cache works
 #     f = function(x=1,y=2)x
 #     g = cacheFile(tempdir()) %@% f
 #     t1 = g(2,3, .load=FALSE)
 #     testthat::expect_message(g(2,3, .load=FALSE), "g: Running function ...")
-#     
+#
 #     t2 = g(2,3, .load=TRUE)
 #     testthat::expect_message(g(2,3, .load=TRUE), "g: Returning loaded data ...")
-#     
+#
 #     testthat::expect_equal(t1, t2)
-#     
+#
 #     # 2. test that named arguments don't cause a new hash
 #     t3 = g(x=2,y=3, .load=TRUE)
 #     testthat::expect_equal(t1, t3)
-#     
+#
 #     # 3. no aruments should not start a new hash
 #     t4.1 = g(1,2)
 #     t4.2 = g(.load=TRUE)
@@ -135,4 +137,3 @@ cacheFile = function(inpath)decorator %@% function(f){
       # 5. different function body
 
 # }
-
