@@ -372,3 +372,51 @@ setMethod("Get_Annotation",signature("GRanges"),
 })
 
 
+# ---------------------------------------------------------------------------- #
+#' Annotate_Peaks - given a peaks GRanges and a gtf file, annotates the peaks
+#' with their corresponding locations
+#'
+#' @param peaks GRanges with peak location
+#' @param annot annotation file 
+#'
+#' @return annotatet GRanges
+Annotate_Peaks = function(peaks, gtf){
+    
+    source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
+    source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
+    message('Constructing annotation...')
+        annot.l = GTFGetAnnotation(gtf)
+    
+    
+    message('Gene annotation...')
+        peaks$gene.annot = suppressWarnings(AnnotateRanges(peaks, annot.l, type='precedence'))
+    
+     message('Getting gene names...')
+        gtf.gens = subset(gtf, type=='exon')
+        gtf.gens = unlist(range(split(gtf.gens, gtf.gens$gene_id)))
+        fog = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000, fix='end'))
+        fog$gene_id = names(gtf.gens)[fog$subjectHits]
+    
+        fogm = merge(fog, unique(annot$gtf$annot[,c('gene_id','gene_name','gene_biotype','gcoord')]), by='gene_id')
+        fogm = fogm[,c('queryHits','gene_name','gene_id'),with=FALSE][,lapply(.SD, function(x)paste(unique(x), sep=':', collapse=':')),by='queryHits']
+        fog$subjectHits=NULL
+    
+        peaks$gene_name = 'None'
+        peaks$gene_name[fogm$queryHits] = fogm$gene_name
+        
+        peaks$gene_id = 'None'
+        peaks$gene_id[fogm$queryHits]   = fogm$gene_id
+        
+    # message('Getting Associated Genes...')
+    # foa = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000000, fix='center'))
+    # foa$gene_id = names(gtf.gens)[foa$subjectHits]
+    # foa$subjectHits = NULL
+    # fol = split(foa, foa$queryHits)
+    # foa = foa[,list(list(gene_id)),by=queryHits]
+    # peaks$gene_id_assoc = 'None'
+    # peaks$gene_id_assoc[foa$queryHits] = foa$V1
+    
+    return(peaks)
+    
+}
+
