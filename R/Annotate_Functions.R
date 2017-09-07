@@ -380,7 +380,8 @@ setMethod("Get_Annotation",signature("GRanges"),
 #' @param annot annotation file 
 #'
 #' @return annotatet GRanges
-Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot'){
+Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot',
+                          colnames = c('gene_id','gene_name','gene_biotype','gcoord')){
     
     source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
@@ -397,7 +398,7 @@ Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot'){
         fog         = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000, fix='end'))
         fog$gene_id = names(gtf.gens)[fog$subjectHits]
     
-        fogm = merge(fog, unique(gtf[[annot_id]][,c('gene_id','gene_name','gene_biotype','gcoord')]), by='gene_id')
+        fogm = merge(fog, unique(gtf[[annot_id]][,colnames]), by='gene_id')
         fogm = fogm[,c('queryHits','gene_name','gene_id'),with=FALSE][,lapply(.SD, function(x)paste(unique(x), sep=':', collapse=':')),by='queryHits']
         fog$subjectHits=NULL
     
