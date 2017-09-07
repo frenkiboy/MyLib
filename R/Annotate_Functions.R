@@ -380,24 +380,24 @@ setMethod("Get_Annotation",signature("GRanges"),
 #' @param annot annotation file 
 #'
 #' @return annotatet GRanges
-Annotate_Peaks = function(peaks, gtf){
+Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot'){
     
     source(file.path(lib.path, 'Annotate_Functions.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     message('Constructing annotation...')
-        annot.l = GTFGetAnnotation(gtf)
+        annot.l = GTFGetAnnotation(gtf[[exon_id]])
     
-    
+        
     message('Gene annotation...')
         peaks$gene.annot = suppressWarnings(AnnotateRanges(peaks, annot.l, type='precedence'))
     
      message('Getting gene names...')
-        gtf.gens = subset(gtf, type=='exon')
-        gtf.gens = unlist(range(split(gtf.gens, gtf.gens$gene_id)))
-        fog = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000, fix='end'))
+        gtf.gens    = subset(gtf[[exon_id]], type=='exon')
+        gtf.gens    = unlist(range(split(gtf.gens, gtf.gens$gene_id)))
+        fog         = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000, fix='end'))
         fog$gene_id = names(gtf.gens)[fog$subjectHits]
     
-        fogm = merge(fog, unique(annot$gtf$annot[,c('gene_id','gene_name','gene_biotype','gcoord')]), by='gene_id')
+        fogm = merge(fog, unique(gtf[[annot_id]][,c('gene_id','gene_name','gene_biotype','gcoord')]), by='gene_id')
         fogm = fogm[,c('queryHits','gene_name','gene_id'),with=FALSE][,lapply(.SD, function(x)paste(unique(x), sep=':', collapse=':')),by='queryHits']
         fog$subjectHits=NULL
     
