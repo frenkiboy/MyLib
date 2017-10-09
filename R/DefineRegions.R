@@ -184,7 +184,7 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE,
         if(normalize){
             total = sum(as.numeric(bw$score))
             norm.fac = (10^(nchar(as.character(total))-1))/total
-            bw = round(bw*())
+            bw$score = round(bw$score*(norm.fac),3)
         }
 
         strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
