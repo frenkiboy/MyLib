@@ -167,7 +167,8 @@ findRegionsGenome = function(r, strand='+', nw=-1, cw=1, gap=2000, gval=-100){
 
 # ----------------------------------------------------------------------------- #
 # loops through bw files and finds antisense regions
-Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE, export.bed=TRUE, mpat='m.bw'){
+Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE, export.bed=TRUE, mpat='m.bw', 
+                             normalize=TRUE){
 
     if(is.null(param))
         stop('please spcify the parameters')
@@ -179,6 +180,12 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE,
         bwname = str_replace(basename(bw.file),'.bw','')
         print(bwname)
         bw = import.bw(bw.file, as='GRanges')
+        
+        if(normalize){
+            total = sum(as.numeric(bw$score))
+            norm.fac = (10^(nchar(as.character(total))-1))/total
+            bw = round(bw*())
+        }
 
         strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
 
