@@ -170,6 +170,7 @@ findRegionsGenome = function(r, strand='+', nw=-1, cw=1, gap=2000, gval=-100){
 Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE, export.bed=TRUE, mpat='m.bw', 
                              normalize=TRUE){
 
+    source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(param))
         stop('please spcify the parameters')
 
