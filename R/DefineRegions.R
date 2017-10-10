@@ -197,7 +197,7 @@ Sample_FindRegion = function(
             bw$score = round(bw$score*(norm.fac),3)
         }
         if(!is.null(subset.chr)){
-          seqlevels(bw, prune='coarse') = intersect(seqlevels(bw), subset.chr)
+          seqlevels(bw,  pruning.mode='coarse') = intersect(seqlevels(bw), subset.chr)
         }
 
         strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
