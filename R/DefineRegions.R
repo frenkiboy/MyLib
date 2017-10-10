@@ -167,8 +167,17 @@ findRegionsGenome = function(r, strand='+', nw=-1, cw=1, gap=2000, gval=-100){
 
 # ----------------------------------------------------------------------------- #
 # loops through bw files and finds antisense regions
-Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE, export.bed=TRUE, mpat='m.bw', 
-                             normalize=TRUE){
+Sample_FindRegion = function(
+  bw.files,
+  gtf,
+  param = NULL,
+  outpath,
+  export.bw  = TRUE,
+  export.bed = TRUE,
+  mpat       = 'm.bw',
+  normalize  = TRUE,
+  subset.chr = NULL
+){
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(param))
@@ -181,11 +190,14 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE,
         bwname = str_replace(basename(bw.file),'.bw','')
         print(bwname)
         bw = import.bw(bw.file, as='GRanges')
-        
+
         if(normalize){
             total = sum(as.numeric(bw$score))
             norm.fac = (10^(nchar(as.character(total))-1))/total
             bw$score = round(bw$score*(norm.fac),3)
+        }
+        if(!is.null(subset.chr)){
+          bw = bw[seqnames(bw) %in% subset.chr]
         }
 
         strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
@@ -201,10 +213,10 @@ Sample_FindRegion = function(bw.files, gtf, param=NULL, outpath, export.bw=TRUE,
                                  gap=param$gap,
                                  gval=param$gval)
         lregs[[bwname]] = regs
-        
+
         if(export.bw)
             export.bw(cov, file.path(outpath, DateNamer(paste(bwname, 'sub', 'bw', sep='.'))))
-        
+
         if(export.bed){
             param.name = paste(names(param), param[1,], sep='.', collapse='_')
             write.table(as.data.frame(sort(regs))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
