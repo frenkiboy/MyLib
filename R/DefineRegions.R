@@ -211,7 +211,7 @@ Sample_FindRegion = function(
         message('Finding Regions ...')
             regs_raw = findRegionsGenome(
                                      cov,
-                                     strand,
+                                     file.strand,
                                      nw   = param$nw,
                                      cw   = param$cw,
                                      gap  = param$gap,
