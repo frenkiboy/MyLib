@@ -23,6 +23,9 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
     gtf.range.ge = unlist(range(gtf.exon.ge))
     gtf.exon.tr = split(gtf.exon, gtf.exon$transcript_id)
 
+    gtf.trans = NULL
+    if(any(gtf$type == 'transcript'))
+        gtf.trans = subset(gtf, type == 'transcript')
 
     message('Selecting transcripts...')
     gtf.selected = GtfSelectTranscript(gtf.exon)
@@ -40,10 +43,11 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
     gtf.annot$twidth = sum(width(gtf.exon.tr))[gtf.annot$transcript_id]
 
 
-    return(list(gtf=gtf.exon,
-                gtf.sel = gtf.selected,
-                gtf.union=gtf.union,
-                annot=gtf.annot))
+    return(list(gtf       = gtf.exon,
+                gtf.sel   = gtf.selected,
+                gtf.union = gtf.union,
+                gtf.trans = gtf.trans,
+                annot     = gtf.annot))
 }
 
 
