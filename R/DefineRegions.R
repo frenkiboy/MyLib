@@ -203,9 +203,9 @@ Sample_FindRegion = function(
           seqlevels(bw,  pruning.mode='coarse') = intersect(seqlevels(bw), subset.chr)
         }
 
-        strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
+        file.strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
 
-        bw = suppressWarnings(bw[countOverlaps(bw,gtf[strand(gtf) == strand])==0])
+        bw = suppressWarnings(bw[countOverlaps(bw,gtf[strand(gtf) == file.strand])==0])
         cov = coverage(bw, weight=bw$score)
 
         message('Finding Regions ...')
