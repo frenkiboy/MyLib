@@ -84,7 +84,7 @@ annotate_Antisense = function(
         regs = Annotate_Divergent_Convergent(
             regs, gtf, antisense.annot, tss.dist.param = tss.dist.param)    
     
-    ds.all = cbind(ds.tss.anti, ds.gb.anti, ds.tss, ds.anti)
+    ds.all = cbind(ds.tss.anti, ds.gb.anti, ds.tss)
     values(regs) = cbind(values(regs), ds.all)
     return(regs)
 
