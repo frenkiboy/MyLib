@@ -23,7 +23,13 @@
 
 annotate_Antisense = function(regs, gtf, tss.up=1000, tss.down=1000, tts.down=1000){
 
-  gtf.sel = gtf$gtf
+    if(class(gtf) != 'GRanges' ){
+        if(class(gtf) == 'list' && 'gtf' %in% names(gtf))
+            gtf.sel = gtf$gtf      
+    }else{
+        gtf.sel = gtf
+    }
+  
   gtf.sel = gtf.sel[!gtf.sel$gene_biotype %in% c('antisense','3prime_overlapping_ncrna')]
 
   genes = unlist(range(split(gtf.sel, gtf.sel$gene_id)))
