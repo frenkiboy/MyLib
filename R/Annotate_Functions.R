@@ -43,7 +43,6 @@ annotate_Antisense = function(
         }
             
     }else{
-        print('tu')
         gtf.sel = gtf
         annot   = as.data.frame(values(gtf.sel))
         annot   = annot[,c('gene_name','gene_id','transcript_id')]
@@ -59,7 +58,10 @@ annotate_Antisense = function(
     regs.tss = resize(regs, width=1, fix='start')
     regs.tss.anti = invertStrand(regs.tss)
   
-
+    nreg = nchar(length(regs)) + 1
+    ids  = paste0('Anti%0',nreg,'d') 
+    regs$antisense_id = sprintf(ids, 1:length(regs))
+    
     # ------------------------------------------------------------------------ #
     message('Reathrough...')
         regs$readthrough = countOverlaps(regs.tss, tts) > 0
@@ -147,10 +149,10 @@ Annotate_Divergent_Convergent = function(
             rsa.dist = as.data.table(distanceToNearest(rsa.tss, rsa.flip))
             rsa.dist$antisense.type = rsa$antisense.type
             
-            rsa.dist$qs = start(rsa.tss)[rsa.dist$queryHits]
+            rsa.dist$qs   = start(rsa.tss)[rsa.dist$queryHits]
             rsa.dist$qstr = as.character(strand(rsa.tss))[rsa.dist$queryHits]
             
-            rsa.dist$ts = start(rsa.flip)[rsa.dist$subjectHits]
+            rsa.dist$ts    = start(rsa.flip)[rsa.dist$subjectHits]
             rsa.dist$tstr = as.character(strand(rsa.flip))[rsa.dist$subjectHits]
             
             rsa.dist$str.dist = rsa.dist$distance
@@ -173,12 +175,12 @@ Annotate_Divergent_Convergent = function(
             
             fora$antisense.type = rsa$antisense.type[fora$queryHits]
             fora$readthrough    = rsa$readthrough[fora$queryHits]
-            fora$qs = start(rsa)[fora$queryHits]   
-            fora$ts = start(rsa.flip)[fora$subject]
-            fora$dist = with(fora, abs(qs - ts))
-            fora$width = width(rsa)[fora$queryHits]
-            fora$id1 = rsa$anti_unique_id[fora$queryHits]
-            fora$id2 = rsa.flip$anti_unique_id[fora$subjectHits]
+            fora$qs             = start(rsa)[fora$queryHits]   
+            fora$ts             = start(rsa.flip)[fora$subject]
+            fora$dist           = with(fora, abs(qs - ts))
+            fora$width          = width(rsa)[fora$queryHits]
+            fora$id1            = rsa$antisense_id[fora$queryHits]
+            fora$id2            = rsa.flip$antisense_id[fora$subjectHits]
             
             fora = subset(fora, !readthrough & id1 != id2 & antisense.type=='None')
             
