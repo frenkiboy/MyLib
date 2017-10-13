@@ -1,3 +1,5 @@
+
+#//Antisense
 # ---------------------------------------------------------------------------- #
 .get_Region_Annotation = function(regs.int, regs.annot, annot , name, merge.by='transcript_id'){
 
@@ -21,13 +23,26 @@
 }
 
 
-annotate_Antisense = function(regs, gtf, tss.up=1000, tss.down=1000, tts.down=1000){
+annotate_Antisense = function(
+    regs, 
+    gtf, 
+    tss.up          = 1000, 
+    tss.down        = 1000, 
+    tts.down        = 1000,
+    tss.dist.param  = 2000,
+    antisense.annot = FALSE){
 
     if(class(gtf) != 'GRanges' ){
-        if(class(gtf) == 'list' && 'gtf' %in% names(gtf))
-            gtf.sel = gtf$gtf      
+        if(class(gtf) == 'list' && 'gtf' %in% names(gtf)){
+            gtf.sel = gtf$gtf
+            annot   = gtf$annot
+        }
+            
     }else{
         gtf.sel = gtf
+        annot   = as.data.frame(values(gtf.sel))
+        annot   = annot[,c('gene_name','ref_gene_id')]
+        annot   = unique(data.table(annot))
     }
   
   gtf.sel = gtf.sel[!gtf.sel$gene_biotype %in% c('antisense','3prime_overlapping_ncrna')]
@@ -45,27 +60,25 @@ annotate_Antisense = function(regs, gtf, tss.up=1000, tss.down=1000, tts.down=10
 
   # -------------------------------------------------------------------------- #
   message('Reathrough...')
-  regs$readthrough = countOverlaps(regs.tss, tts) > 0
+    regs$readthrough = countOverlaps(regs.tss, tts) > 0
 
   # -------------------------------------------------------------------------- #
   message('TSS Antisense...')
-  ds.tss.anti = .get_Region_Annotation(regs.tss.anti, tss, gtf$annot, 'tss_anti')
+    ds.tss.anti = .get_Region_Annotation(regs.tss.anti, tss, gtf$annot, 'tss_anti')
 
   # -------------------------------------------------------------------------- #
   message('Gene Body Antisense...')
-  ds.gb.anti = .get_Region_Annotation(regs.tss.anti, genes, gtf$annot, 'gene_body_anti', merge.by='gene_id')
+    ds.gb.anti = .get_Region_Annotation(regs.tss.anti, genes, gtf$annot, 'gene_body_anti', merge.by='gene_id')
 
   # -------------------------------------------------------------------------- #
   message('TSS Sense...')
-  ds.tss = .get_Region_Annotation(regs.tss, tss, gtf$annot, 'tss')
+    ds.tss = .get_Region_Annotation(regs.tss, tss, gtf$annot, 'tss')
 
   # -------------------------------------------------------------------------- #
-  message('Antisense transcript...')
-  anti.gtf = gtf$gtf[gtf$gtf$gene_biotype == 'antisense']
-  names(anti.gtf) = anti.gtf$transcript_id
-  ds.anti = .get_Region_Annotation(regs, anti.gtf, gtf$annot, 'antisense')
-
-
+  message('Convergent - Divergent ... ')
+    regs = Annotate_Divergent_Convergent(
+        regs, gtf, antisense.annot, tss.dist.param = tss.dist.param)    
+    
   ds.all = cbind(ds.tss.anti, ds.gb.anti, ds.tss, ds.anti)
   values(regs) = cbind(values(regs), ds.all)
   return(regs)
@@ -74,6 +87,106 @@ annotate_Antisense = function(regs, gtf, tss.up=1000, tss.down=1000, tts.down=10
 
 
 
+# ---------------------------------------------------------------------------- #
+Annotate_Divergent_Convergent = function(
+    rsa, 
+    gtf = NULL, 
+    antisense.annot = FALSE,
+    tss.dist.param = 2000
+){
+   
+    if(is.null(gtf))
+        stop('GTF file is not specified')
+     
+    library(GenomicRanges)
+    message('Preparing annotation ...')
+        rsa.tss = resize(rsa, width=1, fix='start')
+        rsa.tss.str = invertStrand(rsa.tss)
+     
+        gtf.l = subset(gtf, type=='exon')
+        gtf.l = unlist(reduce(split(gtf.l, gtf.l$gene_id)))
+        sl = seqlevels(gtf.l)
+        sl = sl[!str_detect(sl,'HSCHR')]
+        sl = sl[!str_detect(sl,'PATCH')]
+        sl = sl[!str_detect(sl,'GL')]
+        sl = sl[!str_detect(sl,'HG')]
+        sl = sl[!str_detect(sl,'MT')]
+        seqlevels(gtf.l,prune.mode='coarse') = sl
+    
+        gtf.pct = range(split(gtf, gtf.pcl$transcript_id))
+        gtf.pct.tss = unlist(resize(gtf.pct, width=1, fix='start'))
+    
+    message('Annotating  ...')    
+        tss.dist      = as.data.table(distanceToNearest(rsa.tss.str, gtf.pct.tss, ignore.strand=FALSE))
+        tss.dist$qs   = start(rsa.tss)[tss.dist$queryHits]
+        tss.dist$qstr = as.character(strand(rsa.tss))[tss.dist$queryHits]
+        tss.dist$ts   = start(gtf.pct.tss)[tss.dist$subjectHits]
+        tss.dist$tstr = as.character(strand(gtf.pct.tss))[tss.dist$subjectHits]
+        tss.dist$str.dist = tss.dist$distance
+        tss.dist$str.dist[with(tss.dist, qs <= ts & tstr == '+' )] = tss.dist$str.dist[with(tss.dist, qs <= ts & tstr == '+' )] * -1
+        tss.dist$str.dist[with(tss.dist, qs >= ts & tstr == '-' )] = tss.dist$str.dist[with(tss.dist, qs >= ts & tstr == '-' )] * -1
+        tss.dist$str.dist.log = log10(tss.dist$distance)
+        tss.dist$str.dist.log[tss.dist$str.dist < 0] = tss.dist$str.dist.log[tss.dist$str.dist < 0] * -1
+        tss.dist$tid = names(gtf.pct.tss)[tss.dist$subjectHits]
+        
+        tss.dist$type = 'None'
+        tss.dist$type[with(tss.dist, str.dist < 0 & abs(str.dist) < tss.dist.param)] = 'Divergent'
+        tss.dist$type[with(tss.dist, str.dist > 0 & abs(str.dist) < tss.dist.param)] = 'Convergent'
+    
+        rsa$nearest.tss.dist = tss.dist$str.dist
+        rsa$antisense.type   = tss.dist$type
+        rsa$antisense.type[rsa$readthrough]   = 'None'
+        rsa$antisense.type[rsa$antisense.type == 'None' & rsa$gene_body_anti.ind] = 'Internal'
+        
+    if(antisense.annot){
+        message('Antisense - Divergent/Convergent ...')
+            rsa.flip = subset(flipStrand(rsa.tss), !readthrough)
+            rsa.dist = as.data.table(distanceToNearest(rsa.tss, rsa.flip))
+            rsa.dist$antisense.type = rsa$antisense.type
+            
+            rsa.dist$qs = start(rsa.tss)[rsa.dist$queryHits]
+            rsa.dist$qstr = as.character(strand(rsa.tss))[rsa.dist$queryHits]
+            
+            rsa.dist$ts = start(rsa.flip)[rsa.dist$subjectHits]
+            rsa.dist$tstr = as.character(strand(rsa.flip))[rsa.dist$subjectHits]
+            
+            rsa.dist$str.dist = rsa.dist$distance
+            rsa.dist$str.dist[with(rsa.dist, qs <= ts & tstr == '+' )] = rsa.dist$str.dist[with(rsa.dist, qs <= ts & tstr == '+' )] * -1
+            rsa.dist$str.dist[with(rsa.dist, qs >= ts & tstr == '-' )] = rsa.dist$str.dist[with(rsa.dist, qs >= ts & tstr == '-' )] * -1
+            rsa.dist$str.dist.log = log10(rsa.dist$distance)
+            rsa.dist$str.dist.log[rsa.dist$str.dist < 0] = rsa.dist$str.dist.log[rsa.dist$str.dist < 0] * -1
+            rsa.dist$type = 'None'
+            rsa.dist$type[with(rsa.dist, str.dist < 0 & abs(str.dist) < 10000)] = 'A_Divergent'
+            rsa.dist$type[with(rsa.dist, str.dist > 0 & abs(str.dist) < 10000)] = 'A_Convergent'
+            rsa.dist$readthrough = rsa$readthrough
+            rsa.dist = subset(rsa.dist, antisense.type=='None' & !readthrough)
+            
+            rsa$antisense.type[rsa.dist$queryHits] = rsa.dist$type
+            rsa$antisense.type[rsa.dist$queryHits] = rsa.dist$type
+            
+            message('Antisense - Internal ...')
+            fora = dtfindOverlaps(rsa, rsa.flip, ignore.strand=TRUE)
+            fora.dist = as.data.table(distanceToNearest(rsa.tss, rsa.flip))
+            
+            fora$antisense.type = rsa$antisense.type[fora$queryHits]
+            fora$readthrough    = rsa$readthrough[fora$queryHits]
+            fora$qs = start(rsa)[fora$queryHits]   
+            fora$ts = start(rsa.flip)[fora$subject]
+            fora$dist = with(fora, abs(qs - ts))
+            fora$width = width(rsa)[fora$queryHits]
+            fora$id1 = rsa$anti_unique_id[fora$queryHits]
+            fora$id2 = rsa.flip$anti_unique_id[fora$subjectHits]
+            
+            fora = subset(fora, !readthrough & id1 != id2 & antisense.type=='None')
+            
+            rsa$antisense.type[fora$queryHits] = 'A_Internal'
+    }
+    return(rsa)
+}
+
+#//Antisense
+
+# ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 #annotates the ranges with the corresponding list
 setGeneric("AnnotateRanges",
