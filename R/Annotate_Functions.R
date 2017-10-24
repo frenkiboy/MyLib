@@ -312,25 +312,24 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 # ---------------------------------------------------------------------------- #
 # given a gtf file constructs the annotation list
 GTFGetAnnotation = function(g, downstream=500, upstream=1000){
-
-    exon = unlist(g[g$type=='exon'])
-    gene = unlist(range(split(g, g$gene_id)))
-    tss = promoters(gene, downstream=downstream, upstream=upstream)
-    tts = promoters(resize(gene, width=1, fix='end'), downstream=downstream,
+    
+    g.exon = g[g$type=='exon']
+    exon = unlist(g.exon)
+    gene = unlist(range(split(g.exon, g.exon$gene_id)))
+    tss  = promoters(gene, downstream=downstream, upstream=upstream)
+    tts  = promoters(resize(gene, width=1, fix='end'), downstream=downstream,
                     upstream=upstream)
     intron = GenomicRanges::setdiff(gene, exon)
-
+    
     values(exon) = NULL
-    gl = GRangesList(tss=tss,
-                     tts=tts,
-                     exon=exon,
-                     intron=intron)
-
+    gl = GRangesList(tss    = tss,
+                     tts    = tts,
+                     exon   = exon,
+                     intron = intron)
+    
     return(gl)
-
-
+    
 }
-
 
 # ---------------------------------------------------------------------------- #
 # annotates a bam file with a given annotation list
