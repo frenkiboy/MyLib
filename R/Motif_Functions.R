@@ -44,9 +44,27 @@ extract_Jaspar_Motifs = function(organism, database='JASPAR2017'){
 
 
 # ---------------------------------------------------------------------------- #
+#' scan_Genome - given a set of PWMs and a BSgenome object scans the genome
+#' and saves the output as a BAM file
+#'
+#' @param matlist - list of PWMs
+#' @param genome.name - name of the used genome
+#' @param genome - BSgenome object
+#' @param chrs - which chromosomes to use
+#' @param outpath - location of output bam files
+#' @param min.score - minimal scanning score
+#' @param ncores - number of cores
+#' @param remove - whether to repeat the scanning procedure
+#'
+#' @return
+#' @export
+#'
+#' @examples
 scan_Genome = function(
   matlist,
   genome.name,
+  genome = NULL,
+  chrs   = NULL,
   outpath,
   min.score = '80%',
   ncores    = 16,
@@ -57,20 +75,19 @@ scan_Genome = function(
     suppressPackageStartupMessages(library(GenomicAlignments))
     library(TFBSTools)
     library(stringr)
-
+    
+    if(is.null(genome))
+        stop('Genome object is not assigned')
+    
+    if(is.null(chrs))
+        chrs = names(genome)
+    
     source(file.path(lib.path, 'FileLoader.R'), local=TRUE)
     gname = str_replace(genome.name,'^.+\\.','')
     path_out_scan_genome = file.path(outpath, gname)
     dir.create(path_out_scan_genome, showWarnings=FALSE)
 
-
-    genome = GenomeLoader(genome.name)
-    chrs = names(genome)
-    chrs = chrs[!str_detect(chrs, 'Un')]
-    chrs = chrs[!str_detect(chrs, 'random')]
-    chrs = chrs[!str_detect(chrs, 'hap')]
-    chrs = setdiff(chrs, c('chrM','chrY'))
-
+ 
     gl = lapply(chrs, function(x)genome[[x]])
     names(gl) = chrs
     gl = DNAStringSet(gl)
