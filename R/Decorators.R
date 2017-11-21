@@ -53,7 +53,7 @@ cacheFile = function(inpath)decorator %@% function(f){
 
         # -------------------------------------------------------------------- #
         fcall = as.list(match.call())
-    
+
         # extracts the function name
         fname = fcall[[1]]
 
@@ -81,7 +81,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         # evaluates global variables from .anames
         if(length(args) > 0){
             for(i in 1:length(.anames)){
-                if(is.call(.anames[[i]]) | is.call(.anames[[i]])){
+                if(is.call(.anames[[i]]) | is.name(.anames[[i]])){
                    .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
                 }
             }
