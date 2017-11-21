@@ -82,7 +82,7 @@ cacheFile = function(inpath)decorator %@% function(f){
         # converts them into a list
         .dotind = names(.anames) == '...'
         if(any(.dotind)){
-          .anames = c(.anames[!.dotind], as.list(.anames[.dotind]))
+          .anames = .anames[!.dotind]
         }
 
         # evaluates global variables from .anames
@@ -143,72 +143,4 @@ cacheFile = function(inpath)decorator %@% function(f){
       # 4. different calling arguments
       # 5. different function body
 
-# }
-
-
-
-# source(file.path(lib.path, 'Decorate.R'))
-# cacheTmp = function(inpath)decorator %@% function(f){
-#
-#     library(digest)
-#     argnames = head(as.list(args(as.list(environment())[[1]])),-1)
-#     body = lapply(as.list(body(f)), as.character)
-#     function(..., .load=TRUE, .anames = argnames, .fbody=body){
-#
-#         # -------------------------------------------------------------------- #
-#         fcall = as.list(match.call())
-#
-#         # extracts the function name
-#         fname = fcall[[1]]
-#
-#         # removes the funciton name from the call
-#         args  = fcall[-1]
-#         if(!is.null(names(args)) && any(names(args) == '.load'))
-#             args  = args[names(args) != '.load']
-#
-#         # replaces default arguments with set arguments
-#         if(!is.null(names(args))){
-#             named_args = setdiff(names(args),'')
-#             if(!is.null(named_args))
-#                 for(i in named_args)
-#                     .anames[[i]] = args[[i]]
-#
-#             pos_args = which(names(args) == '')
-#             if(length(pos_args) > 0)
-#                 for(i in pos_args)
-#                     .anames[[i]] = args[[i]]
-#         }else{
-#             for(i in seq_along(args))
-#                 .anames[[i]] = args[[i]]
-#         }
-#
-#         browser()
-#         # evaluates global variables from .anames
-#         if(length(args) > 0){
-#             for(i in 1:length(.anames)){
-#                 if(is.call(.anames[[i]]) | is.name(.anames[[i]]) ){
-#                    .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
-#                 }
-#             }
-#         }
-#         # -------------------------------------------------------------------- #
-#         # creates the argument hash
-#         hashlist = list(anames = .anames, body = .fbody)
-#         args_hash = digest(hashlist, algo='md5')
-#         message(args_hash)
-#
-#         # -------------------------------------------------------------------- #
-#         outfile = file.path(inpath,paste(fname, args_hash, 'rds', sep='.'))
-#         if(.load && file.exists(outfile)){
-#             message(paste0(fname,': Returning loaded data ...'))
-#             message(outfile)
-#             readRDS(outfile)$dat
-#        }else{
-#            message(paste0(fname,': Running function ...'))
-#             dat = f(...)
-#
-#             saveRDS(list(dat=dat, args=.anames, body=.fbody), outfile)
-#             dat
-#         }
-#     }
 # }
