@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------- #
 summarize_tomtom = function(tomtom, n=5){
-    
+
     library(data.table)
     tom = rbindlist(tomtom)
     ltom = lapply(split(tom, tom$motname), function(x){
@@ -9,7 +9,7 @@ summarize_tomtom = function(tomtom, n=5){
         d = d[1:n,]
         if(nrow(d) == 0)
             return(data.table(motname=unique(tom$motname)), gene_name='')
-        
+
         d[,list(gene_name = paste(unique(gene_name), collapse='|')), by=motname]
     })
     dtom = na.omit(rbindlist(ltom))
@@ -19,20 +19,23 @@ summarize_tomtom = function(tomtom, n=5){
 
 # ---------------------------------------------------------------------------- #
 annotate_tomtom = function(path, base=NULL, outpath, dist='pearson'){
-    
+
+    library(stringr)
     if(is.null(base))
         stop('database is not specified')
-    
+
     if(length(path) == 1){
+
         motfiles = list.files(path, recursive=TRUE, pattern='.txt', full.names=TRUE)
+        motfiles = motfiles[!str_detect(motfiles, '[tT]omtom')]
     }else{
         motfiles = path
     }
-    
+
    message('tomtom...')
    path.tomtom = file.path(outpath, 'Tomtom')
         dir.create(path.tomtom)
-    
+
     lmot = list()
     for(i in 1:length(motfiles)){
         motfile = motfiles[i]
@@ -40,12 +43,12 @@ annotate_tomtom = function(path, base=NULL, outpath, dist='pearson'){
         tomtom = run_tomtom(motfile, base, path.tomtom, dist=dist)
         if(!is.null(tomtom))
             tomtom = data.frame(sample=motname, tomtom)
-       
+
        tomtom$motname = with(tomtom, paste(sample, paste('M', sprintf('%05d',qnum),sep=''), sep='.'))
        lmot[[motname]] = tomtom
     }
     return(lmot)
-    
+
 }
 
 # ---------------------------------------------------------------------------- #
