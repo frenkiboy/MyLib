@@ -194,7 +194,6 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                singleEnd=TRUE,
                                                inter.feature=TRUE,
                                                mode='Union',
-                                               ...
                                                ){
     library(GenomicAlignments)
     library(Rsamtools)
@@ -207,8 +206,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                       singleEnd        = singleEnd,
                       preprocess.reads = preprocess.reads,
                       inter.feature    = inter.feature,
-                      mode             = mode,
-                      ...)
+                      mode             = mode)
 
 }
 
@@ -244,22 +242,22 @@ get_DifferentialExpression = function(
     trans,
     bamfiles,
     coldata,
-    design=NULL,
-    nreads=5,
-    nsamp=3,
-    contlist=NULL,
-    ignore.strand=FALSE,
-    independent.filtering=TRUE,
-    betaPrior=TRUE,
-    preprocess.reads=NULL,
-    singleEnd=TRUE,
-    invertStrand=FALSE,
-    merge_id = 'transcript_id',
-    cnts.name=NULL,
-    name=NULL,
-    annotation=NULL,
-    lfc=1,
-    padj=0.01
+    design                = NULL,
+    nreads                = 5,
+    nsamp                 = 3,
+    contlist              = NULL,
+    ignore.strand         = FALSE,
+    independent.filtering = TRUE,
+    betaPrior             = TRUE,
+    preprocess.reads      = NULL,
+    singleEnd             = TRUE,
+    invertStrand          = FALSE,
+    merge_id              = 'transcript_id',
+    cnts.name             = NULL,
+    name                  = NULL,
+    annotation            = NULL,
+    lfc                   = 1,
+    padj                  = 0.01
 	){
 
     library(GenomicRanges)
@@ -290,9 +288,10 @@ get_DifferentialExpression = function(
     ranges=trans
     if(invertStrand)
 	    ranges = invertStrand(ranges)
+
     txhits = count_Reads(ranges,
                          BamFileList(bamfiles),
-                         ignore.strand=ignore.strand,
+                         ignore.strand = ignore.strand,
                          param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
                          preprocess.reads=preprocess.reads,
                          singleEnd=singleEnd)
