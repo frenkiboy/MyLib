@@ -77,7 +77,7 @@ cacheFile = function(inpath)decorator %@% function(f){
             for(i in seq_along(args))
                 .anames[[i]] = args[[i]]
         }
-
+        
         # checks whether there are any extra ... arguments
         # converts them into a list
         .dotind = names(.anames) == '...'
@@ -89,7 +89,10 @@ cacheFile = function(inpath)decorator %@% function(f){
         if(length(args) > 0){
             for(i in 1:length(.anames)){
                 if(is.call(.anames[[i]]) | is.name(.anames[[i]])){
-                   .anames[[i]] = eval(.anames[[i]], envir=parent.frame())
+                  .eval = eval(.anames[[i]], envir=parent.frame())
+                  if(is.null(.eval))
+                    .eval = list(NULL)
+                  .anames[[i]] = .eval
                 }
             }
         }
