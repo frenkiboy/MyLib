@@ -188,16 +188,21 @@ source(file.path(lib.path, 'Decorate.R'),   local=TRUE)
 source(file.path(lib.path, 'Decorators.R'), local=TRUE)
 count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                bamfiles,
-                                               ignore.strand = FALSE,
-                                               param=ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
-                                               preprocess.reads=NULL,
-                                               singleEnd=TRUE,
-                                               inter.feature=TRUE,
-                                               mode='Union'
+                                               ignore.strand    = FALSE,
+                                               param            = ScanBamParam(flag=scanBamFlag(isSecondaryAlignment=FALSE)),
+                                               preprocess.reads = NULL,
+                                               singleEnd        = TRUE,
+                                               inter.feature    = TRUE,
+                                               mode             = 'Union'
+                                               yieldSize        = 1000000,
+                                               ncores           = 8
                                                ){
+    library(BiocParallel)
     library(GenomicAlignments)
     library(Rsamtools)
+    register(MulticoreParam(workers = ncores))
 
+    bamfiles_list = BamFileList(bamfiles, yieldSize=yieldSize)
     message('Counting ...')
     summarizeOverlaps(ranges,
                       bamfiles,
@@ -319,9 +324,9 @@ get_DifferentialExpression = function(
     means = getMeans.DESeqDataSet(des)
     message('Dat...')
     if(is.null(annotation)){
-   	ann = Get_Annotation(trans)
+   	    ann = Get_Annotation(trans)
     }else{
-	ann = annotation
+	       ann = annotation
     }
 
     ann$id = ann[[merge_id]]
