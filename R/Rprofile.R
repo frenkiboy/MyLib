@@ -12,12 +12,12 @@ options(stringsAsFactors=FALSE)
 .First = function(){
 	# -------------------------------------------------- #
 	# source
-	
-	source("http://bioconductor.org/biocLite.R")
-    
+
+	# source("http://bioconductor.org/biocLite.R")
+
     varfile=list.files(getwd(), pattern='Config.txt', full.names=TRUE)
     if(file.exists(varfile) && length(varfile) == 1)
 	    eval(source(varfile), envir=parent.frame())
-    
-    try(source(file.path(Sys.getenv("MYLIB"),"Startup.R"))) 
+
+    try(source(file.path(Sys.getenv("MYLIB"),"Startup.R")))
 }
