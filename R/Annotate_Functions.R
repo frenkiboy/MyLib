@@ -349,7 +349,7 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
         if(length(g) == 0)
             return(data.table(rname=NA, annot=NA, uniq=NA))
 
-        g$annot = AnnotateRanges(g, annotation, ignore.strand=ignore.strand)
+        g$annot = suppressMessages(AnnotateRanges(g, annotation, ignore.strand=ignore.strand))
         g = g[order(match(g$annot, c(names(annotation),'None')))]
         g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
         dg = as.data.table(values(g)[,c('annot','uniq')])
