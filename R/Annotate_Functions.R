@@ -341,7 +341,6 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
     # chrs = chrs[!chrs$chr %in% c('chrM','chrY'),]
     lchr = list()
     message('Looping ...')
-    browser()
     lchr = foreach(chr = chrs$chr)%dopar%{
 
         w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
