@@ -193,7 +193,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
                                                preprocess.reads = NULL,
                                                singleEnd        = TRUE,
                                                inter.feature    = TRUE,
-                                               mode             = 'Union'
+                                               mode             = 'Union',
                                                yieldSize        = 1000000,
                                                ncores           = 8
                                                ){
