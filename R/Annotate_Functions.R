@@ -231,13 +231,13 @@ setMethod("AnnotateRanges",signature("GRanges","GRangesList"),
     a = a[order(a$precedence)]
 
     if(type == 'precedence'){
-        cat('precedence...\n')
+        message('precedence...\n')
         a = a[!duplicated(a$queryHits)]
         annot = rep(null.fact, length(region))
         annot[a$queryHits] = a$id
     }
     if(type == 'all'){
-        cat('all...\n')
+        message('all...\n')
         a = a[,list(id=paste(unique(id),collapse=collapse.char)),by='queryHits']
         annot = rep(null.fact, length(region))
         annot[a$queryHits] = a$id
