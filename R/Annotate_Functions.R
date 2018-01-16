@@ -218,7 +218,7 @@ setMethod("AnnotateRanges",signature("GRanges","GRangesList"),
 
     require(data.table)
     require(GenomicRanges)
-    cat('Overlapping...\n')
+    message('Overlapping...\n')
     if(any(names(is.null(annotation))))
         stop('All annotations need to have names')
 
@@ -283,7 +283,7 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 
 				require(data.table)
 				require(GenomicRanges)
-				cat('Overlapping...\n')
+                message('Overlapping...\n')
 				if(any(names(is.null(annotation))))
 					stop('All annotations need to have names')
 
@@ -292,14 +292,14 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 
 
               if(type == 'precedence'){
-                  cat('precedence...\n')
+                  message('precedence...\n')
                   a$precedence = match(a$id,precedence)[a$subjectHits]
                   a = a[order(a$precedence)]
                   a = a[!duplicated(a$queryHits)]
 
               }
               if(type == 'all'){
-                  cat('all...\n')
+                  message('all...\n')
                   a = a[,list(id=paste(unique(id),collapse=collapse.char)),by='queryHits']
               }
 			  annot = rep(null.fact, length(region))
@@ -516,7 +516,7 @@ Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot',
     message('Gene annotation...')
         peaks$gene.annot = suppressWarnings(AnnotateRanges(peaks, annot.l, type='precedence'))
 
-     message('Getting gene names...')
+    message('Getting gene names...')
         gtf.gens    = subset(gtf[[exon_id]], type=='exon')
         gtf.gens    = unlist(range(split(gtf.gens, gtf.gens$gene_id)))
         fog         = dtfindOverlaps(peaks, resize(gtf.gens, width=width(gtf.gens)+1000, fix='end'))
