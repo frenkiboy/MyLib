@@ -341,25 +341,34 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
     # chrs = chrs[!chrs$chr %in% c('chrM','chrY'),]
     lchr = list()
     message('Looping ...')
+    browser()
     lchr = foreach(chr = chrs$chr)%dopar%{
 
         w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
-        reads = readGAlignments(infile, use.names=TRUE, param=ScanBamParam(which=w, tag='NH'))
+        reads = readGAlignments(infile, use.names=TRUE, param=ScanBamParam(which=w))
         g = granges(reads, use.names=TRUE, use.mcols=TRUE)
         if(length(g) == 0)
             return(data.table(rname=NA, annot=NA, uniq=NA))
 
         g$annot = suppressMessages(AnnotateRanges(g, annotation, ignore.strand=ignore.strand))
         g = g[order(match(g$annot, c(names(annotation),'None')))]
-        g$uniq  = factor(ifelse(g$NH == 1,'Uniq','Mult'),levels=c('Uniq','Mult'))
-        dg = as.data.table(values(g)[,c('annot','uniq')])
-        dg$rname = names(g)
+        dg = data.table(rname = names(g), annot=g$annot)
+        dg[,uniq := .N, by=rname]
+        dg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
+        dg = split(dg, dg$annot)
+        dg = dg[c(names(annotation),'None')]
+        dg = rbindlist(dg)
         dg = dg[!duplicated(dg$rname)]
         return(dg)
     }
     message('Merging ...')
     ldg = rbindlist(lchr)
-    ldg = ldg[order(match(ldg$annot, c(names(annotation),'None')))]
+    ldg[,uniq := NULL]
+    ldg[,uniq := .N, by=rname]
+    ldg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
+    ldg = split(ldg, ldg$annot)
+    ldg = ldg[c(names(annotation),'None')]
+    ldg = rbindlist(ldg)
     ldg = ldg[!duplicated(ldg$rname)]
     ldg = na.omit(ldg)
 
