@@ -200,6 +200,7 @@ count_Reads = cacheFile(path_RDS) %@% function(ranges,
     library(BiocParallel)
     library(GenomicAlignments)
     library(Rsamtools)
+    library(GenomicRanges)
     register(MulticoreParam(workers = ncores))
 
     bamfiles_list = BamFileList(bamfiles, yieldSize=yieldSize)
