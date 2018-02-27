@@ -15,6 +15,7 @@ MappingStats_Bowtie = function(path){
                    cnts  = c(s[1:4],s[2]+s[3]))
 
     d[,freq := round(cnts/cnts[1],3)]
+    d = data.table(sample = basename(path), d)
     return(d)
 }
 
