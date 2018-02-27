@@ -86,7 +86,7 @@ GetMappingStats = function(path, which.stats=NULL){
 	if(is.null(which.stats))
 		stop('Specify the mapper')
 
-  which.list = list(bowtie='log$', star='Log.final.out$', STAR='Log.final.out$')
+  which.list = list(bowtie='log$', star='Log.final.out$', STAR='Log.final.out$',bowtie2='log',Bowtie2='log')
 
   if(!which.stats %in% names(which.list))
     stop('which.stats not correct')
@@ -108,6 +108,9 @@ GetMappingStats = function(path, which.stats=NULL){
 
     if(which.stats %in% c('star','STAR'))
         lstat = lapply(files, MappingStats_STAR)
+
+    if(which.stats %in% c('bowtie2','Bowtie2'))
+	lstat = lapply(files, MappingStats_Bowtie2)
 
     dstat = rbindlist(lstat)
     return(dstat)
