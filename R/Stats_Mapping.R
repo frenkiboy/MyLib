@@ -19,6 +19,26 @@ MappingStats_Bowtie = function(path){
 }
 
 # ------------------------------------------------------------------------ #
+MappingStats_Bowtie2 = function(path){
+
+    require(stringr)
+    require(data.table)
+    s = scan(path, what='character', sep='\t', quiet=TRUE)
+    s = str_replace(s,'^ +','')
+    s = str_replace(s,' .+','')
+    s = str_replace(s,'%','')
+    if(length(s) > 6)
+        s = s[c(1:5, 15)]
+    s = as.numeric(s)
+    d = data.table(value = s)
+    d$stat = c('reads.total','reads.unpaired','reads.unmapped','reads.uniq','reads.mult','alignment.rate')
+    d = rbind(d, data.table(
+        stat  ='mapped.total',
+        value = subset(d,stat=='reads.uniq')$value + subset(d,stat=='reads.mult')$value))
+    return(d)
+}
+
+# ------------------------------------------------------------------------ #
 # for bowtie
 MappingStats_STAR = function(path){
 
