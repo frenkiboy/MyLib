@@ -15,7 +15,6 @@ MappingStats_Bowtie = function(path){
                    cnts  = c(s[1:4],s[2]+s[3]))
 
     d[,freq := round(cnts/cnts[1],3)]
-    d = data.table(sample = basename(path), d)
     return(d)
 }
 
@@ -36,6 +35,7 @@ MappingStats_Bowtie2 = function(path){
     d = rbind(d, data.table(
         stat  ='mapped.total',
         value = subset(d,stat=='reads.uniq')$value + subset(d,stat=='reads.mult')$value))
+    d = data.table(sample = basename(path), d)
     return(d)
 }
 
