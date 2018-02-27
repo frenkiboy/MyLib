@@ -78,7 +78,7 @@ MappingStats_Salmon = function(path){
 # ------------------------------------------------------------------------ #
 # general function for getting mapping statistics
 # output = data.table: sample, mapped, cnts
-GetMappingStats = function(path, which.stats=NULL){
+GetMappingStats = function(path, which.stats=NULL, suffix=NULL){
 
     require(stringr)
     require(data.table)
@@ -88,9 +88,15 @@ GetMappingStats = function(path, which.stats=NULL){
 
   which.list = list(bowtie='log$', star='Log.final.out$', STAR='Log.final.out$',bowtie2='log',Bowtie2='log')
 
-  if(!which.stats %in% names(which.list))
+  if(is.null(suffix) && !which.stats %in% names(which.list))
     stop('which.stats not correct')
-  pattern = which.list[[which.stats]]
+  
+  if(is.null(suffix)){
+    pattern = which.list[[which.stats]]
+  }else{
+    pattern=suffix
+  }
+
 
 
 	if(length(path) == 0)
