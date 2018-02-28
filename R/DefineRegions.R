@@ -183,6 +183,7 @@ Sample_FindRegion = function(
 ){
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
+    library(rtracklayer)
     if(is.null(param))
         stop('please specify the parameters')
 
@@ -207,7 +208,7 @@ Sample_FindRegion = function(
 
         if(!is.null(gtf))
           bw = suppressWarnings(bw[countOverlaps(bw,gtf[strand(gtf) == file.strand])==0])
-        
+
         cov = coverage(bw, weight=bw$score)
 
         message('Finding Regions ...')
