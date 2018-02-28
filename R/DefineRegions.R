@@ -169,7 +169,7 @@ findRegionsGenome = function(r, strand='+', nw=-1, cw=1, gap=2000, gval=-100){
 # loops through bw files and finds antisense regions
 Sample_FindRegion = function(
   bw.files,
-  gtf,
+  gtf        = NULL,
   param      = NULL,
   outpath,
   export.bw  = TRUE,
@@ -184,7 +184,7 @@ Sample_FindRegion = function(
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     if(is.null(param))
-        stop('please spcify the parameters')
+        stop('please specify the parameters')
 
     lregs=list()
     for(i in 1:length(bw.files)){
@@ -205,7 +205,9 @@ Sample_FindRegion = function(
 
         file.strand = ifelse(str_detect(basename(bw.file),mpat),'-','+')
 
-        bw = suppressWarnings(bw[countOverlaps(bw,gtf[strand(gtf) == file.strand])==0])
+        if(!is.null(gtf))
+          bw = suppressWarnings(bw[countOverlaps(bw,gtf[strand(gtf) == file.strand])==0])
+        
         cov = coverage(bw, weight=bw$score)
 
         message('Finding Regions ...')
@@ -216,18 +218,18 @@ Sample_FindRegion = function(
                                      cw   = param$cw,
                                      gap  = param$gap,
                                      gval = param$gval)
-        
+
         message('Defining Regions ...')
             regs_def = DefineRegionBorders(
-                                regs_raw, 
-                                cov, 
-                                down   = param$down, 
-                                up     = param$up, 
+                                regs_raw,
+                                cov,
+                                down   = param$down,
+                                up     = param$up,
                                 strand = strand,
-                                lower  = lower, 
+                                lower  = lower,
                                 upper  = upper)
-        
-            
+
+
         lregs[[bwname]]$regs_raw = regs_raw
         lregs[[bwname]]$regs_def = regs_def
 
@@ -249,13 +251,13 @@ Sample_FindRegion = function(
 # Takes a GRanges and a RleList and defines the regions that contain the bulk of the coverage
 # RLEs are not stranded so you have to run the function for the + and minus strand separately
 DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, upper='max'){
-    
+
     # gets the chromosome names
     g$'_ind' = 1:length(g)
     g = sort(g)
     chrs = unique(as.character(seqnames(g)))
-    
-    
+
+
     # whether the region reduction should be strand oriented
     if(!strand){
         gsrl = as(g, 'RangesList')
@@ -266,41 +268,41 @@ DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, up
             regs = as.data.frame(do.call(rbind, va))
             return(regs)
         }
-        
+
         dregs = do.call(rbind, lregs)
         setnames(dregs, 1:2, c('rstart','rend'))
         dregs$width=with(dregs, rend-rstart+1)
         dregs$gwidth = width(g)
-        
+
         if(with(dregs, sum(width > gwidth)) != 0)
             stop('Final widths larger then starting widths')
-        
+
         if(any(dregs$width < 0))
             stop('Some regions have width 0')
-        
+
         end(g)   = start(g) + dregs$rend
         start(g) = start(g) + dregs$rstart
         ds = g
-        
+
     }else{
         ls = list()
-        
+
         strand = as.character(unique(strand(g)))
         for(s in strand){
             message(s)
             gs = g[strand(g) == s]
             if(any(width(gs) == 1))
                 warning('Some regions have width 1')
-            
+
             gsrl = as(gs, 'RangesList')
             lregs = foreach(chr = chrs)%dopar%{
                 v = Views(r[chr], gsrl[chr])
                 va = viewApply(v[[chr]], function(x)GetRegs(x, down=down, up=up, strand=s, lower=lower, upper=upper), simplify=FALSE)
                 regs = as.data.frame(do.call(rbind, va))
-                
+
                 return(regs)
             }
-            
+
             dregs = do.call(rbind, lregs)
             setnames(dregs, 1:2, c('rstart','rend'))
             dregs$width=with(dregs, rend-rstart+1)
@@ -309,20 +311,20 @@ DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, up
             dregs$rstart[inf.ind] = 1
             dregs$rend[inf.ind] = 1
             dregs$width[inf.ind] = 1
-            
+
             if(with(dregs, sum(width > gwidth)) != 0)
                 stop('Final widths larger then starting widths')
-            
+
             if(any(dregs$width < 0))
                 stop('Some regions have width 0')
-            
+
             end(gs)   = start(gs) + dregs$rend
             start(gs) = start(gs) + dregs$rstart
             gs = gs[dregs$width > 1]
             ls[[s]] = gs
         }
         ds = unlist(GRangesList(ls), use.names=FALSE)
-        
+
     }
     ds = ds[order(ds$'_ind')]
     ds$'_ind' = NULL
@@ -331,17 +333,17 @@ DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, up
 
 
 GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
-    
+
     if(!strand %in% c('+','-','*'))
         stop('strand is not an allowed value')
-    
+
     v = as.vector(x)
     if(lower > 0)
         v[v < lower] = 0
-    
+
     if(upper != 'max')
         v[v > max] = max
-    
+
     if(strand == '+' | strand == '*'){
         cs = cumsum(v)
         cs = cs/max(cs)
@@ -353,10 +355,10 @@ GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
         reg = c(min(which(cs >= down)), max(which(cs <= up)))
         reg = length(v) - rev(reg) + 1
     }
-    
+
     if(all(v == 0))
         reg=c(0,0)
-    
+
     return(reg)
 }
 
