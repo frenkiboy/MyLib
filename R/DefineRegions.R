@@ -183,7 +183,7 @@ Sample_FindRegion = function(
 ){
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
-    library(rtracklayer)
+    suppressPackageStartupMessages(library(rtracklayer))
     if(is.null(param))
         stop('please specify the parameters')
 
