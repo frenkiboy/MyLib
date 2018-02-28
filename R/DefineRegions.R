@@ -179,12 +179,14 @@ Sample_FindRegion = function(
   subset.chr = NULL,
   strand     = TRUE,
   lower      = 0,
-  upper      = 'max'
+  upper      = 'max',
+  ncores     = 8
 ){
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     suppressPackageStartupMessages(library(rtracklayer))
     suppressPackageStartupMessages(library(doMC))
+    registerDoMC(ncores)
     if(is.null(param))
         stop('please specify the parameters')
 
