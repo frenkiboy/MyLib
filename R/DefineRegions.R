@@ -239,7 +239,7 @@ Sample_FindRegion = function(
                 message('Filtering Regions ...')
                 regs_filt = lapply(regs_def, function(x){
                     quants = quantile(x$score)
-                    x[x[2] > x]
+                    x[x$score > quants[2]]
                 })
             }
 
