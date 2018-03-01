@@ -180,6 +180,7 @@ Sample_FindRegion = function(
   strand     = TRUE,
   lower      = 0,
   upper      = 'max',
+  score_filt = TRUE,
   ncores     = 8
 ){
 
@@ -234,9 +235,17 @@ Sample_FindRegion = function(
                                 lower  = lower,
                                 upper  = upper)
 
+            if(score_filt){
+                message('Filtering Regions ...')
+                regs_filt = lapply(regs_def, function(x){
+                    quants = quantile(x$score)
+                    x[x[2] > x]
+                })
+            }
 
-        lregs[[bwname]]$regs_raw = regs_raw
-        lregs[[bwname]]$regs_def = regs_def
+        lregs[[bwname]]$regs_raw  = regs_raw
+        lregs[[bwname]]$regs_def  = regs_def
+        lregs[[bwname]]$regs_filt = regs_filt
 
         if(export.bw)
             export.bw(cov, file.path(outpath, DateNamer(paste(bwname, 'sub', 'bw', sep='.'))))
@@ -246,9 +255,10 @@ Sample_FindRegion = function(
                 param.name = paste(names(param), param[1,], sep='.', collapse='_')
                 write.table(as.data.frame(sort(regs_raw))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'raw.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
                 write.table(as.data.frame(sort(regs_def))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'def.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
+                write.table(as.data.frame(sort(regs_def))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'filt.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
         }
     }
-    return(lregs)
+    return(invisible(lregs))
 
 }
 
