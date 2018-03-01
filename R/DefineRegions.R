@@ -237,10 +237,8 @@ Sample_FindRegion = function(
 
             if(score_filt){
                 message('Filtering Regions ...')
-                regs_filt = lapply(regs_def, function(x){
-                    quants = quantile(x$score)
-                    x[x$score > quants[2]]
-                })
+                quants = quantile(regs_def$score)
+                regs_filt = regs_def[regs_def$score > quants[2]]
             }
 
         lregs[[bwname]]$regs_raw  = regs_raw
