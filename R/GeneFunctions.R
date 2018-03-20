@@ -93,7 +93,7 @@
             gtf = gtf[!str_detect(gtf$exon_id, 'cdna')]
         }
         sl = seqlevels(gtf)
-        seqlevels(gtf, force=TRUE) = sl[!(str_detect(sl,'HG') | str_detect(sl,'GL') | str_detect(sl,'MHC') | str_detect(sl,'HS') | str_detect(sl,'MT'))]
+        seqlevels(gtf, pruning.mode='coarse') = sl[!(str_detect(sl,'HG') | str_detect(sl,'GL') | str_detect(sl,'MHC') | str_detect(sl,'HS') | str_detect(sl,'MT'))]
         d = data.table(as.data.frame(values(gtf)))
         d$strand = as.character(strand(gtf))
         d$width = width(gtf)
