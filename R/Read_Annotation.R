@@ -2,7 +2,6 @@
 # Reads the gtf annotation
 ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
 
-    lib.path=file.path(Sys.getenv('HOME'),'bin/MyLib/RFun')
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
     source(file.path(lib.path, 'GeneFunctions.R'), local=TRUE)
     require(data.table)
