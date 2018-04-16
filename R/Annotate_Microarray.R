@@ -2,7 +2,8 @@
 # ---------------------------------------------------------------------------- #
 
 # cstrand - use it to combine coordinate and strand, to be able to define promoters
-Get_Affy_Annotation = function(ids, organism='mmusculus', attribs=NULL, platform, cstrand=FALSE, mart_name = 'ensembl'){
+Get_Affy_Annotation = function(ids, organism='mmusculus', attribs=NULL, platform, cstrand=FALSE, mart_name = 'ensembl', 
+                               filter=TRUE){
 
   require(stringr)
   require("biomaRt")
@@ -19,12 +20,15 @@ Get_Affy_Annotation = function(ids, organism='mmusculus', attribs=NULL, platform
   mart = useMart(mart_name,
                  dataset=paste(organism,"gene_ensembl",sep='_'))
 
-  filters = platform
-  bm = getBM(attributes = attribs,
-             filter = filters,
-             values=ids,
-             mart=mart)
-
+  if(filter){
+    filters = platform
+    bm = getBM(attributes = attribs,
+               filter = filters,
+               values=ids,
+               mart=mart)
+  }else{
+    bm = getBM(attributes = attribs, mart=mart)
+  }
   return(data.table(bm))
 }
 
