@@ -26,13 +26,11 @@ parse_BCFstats = function(path){
             d$value = as.numeric(d$value)
         if(i == 'ST')
             d$count = as.numeric(d$count)
-        # if(i %in% names(wind)[c(2:8,10)])
-        #     d = apply(d, 2, as.numeric)
 
         if(i %in% setdiff(names(wind),c('SN','ST')))
             d = suppressWarnings(apply(d, 2, as.numeric))
 
-        d = data.frame(sample = sname, d)
+        d = data.frame(sample = sname, as.data.frame(d))
         lout[[i]] = d
     }
     return(lout)
