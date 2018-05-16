@@ -1,11 +1,10 @@
-path = 'Proseq_HEK_KO_0m_br1.filt.snps.stats.txt'
-
 # ---------------------------------------------------------------------------- #
 parse_BCFstats = function(path){
 
+    browser()
     library(stringr)
     sname = str_replace(basename(path),'.filt.snps.stats.txt','')
-    s = scan(path, what='character', sep='\n')
+    s = scan(path, what='character', sep='\n', quiet=TRUE)
     ind  = unique(str_replace(s, '\\t.+', ''))
     ind  = ind[!str_detect(ind,'#')]
     ind  = setdiff(ind, 'ID')
@@ -28,7 +27,7 @@ parse_BCFstats = function(path){
             d$count = as.numeric(d$count)
 
         if(i %in% setdiff(names(wind),c('SN','ST')))
-            d = suppressWarnings(apply(d, 2, as.numeric))
+            d = suppressWarnings(data.frame(lapply(d,  as.numeric)))
 
         d = data.frame(sample = sname, as.data.frame(d))
         lout[[i]] = d
