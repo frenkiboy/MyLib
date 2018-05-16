@@ -48,8 +48,9 @@ parse_BCFstats_Files = function(
     if(length(infiles) == 0)
         stop('There are no input files')
 
-    lout = lapply(infiles, parse_BCFstats)
-    dout = lapply(names(lout[[1]]), function(x)
+    lout   = suppressMessages(lapply(infiles, parse_BCFstats))
+    snames = names(lout[[1]])
+    dout   = lapply(setNames(snames,snames), function(x)
         do.call(rbind, lapply(lout, '[[', x))
     )
     return(dout)
