@@ -1,7 +1,6 @@
 # ---------------------------------------------------------------------------- #
 parse_BCFstats = function(path){
 
-    browser()
     library(stringr)
     sname = str_replace(basename(path),'.filt.snps.stats.txt','')
     s = scan(path, what='character', sep='\n', quiet=TRUE)
