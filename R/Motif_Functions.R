@@ -75,19 +75,19 @@ scan_Genome = function(
     suppressPackageStartupMessages(library(GenomicAlignments))
     library(TFBSTools)
     library(stringr)
-    
+
     if(is.null(genome))
         stop('Genome object is not assigned')
-    
+
     if(is.null(chrs))
         chrs = names(genome)
-    
+
     source(file.path(lib.path, 'FileLoader.R'), local=TRUE)
     gname = str_replace(genome.name,'^.+\\.','')
     path_out_scan_genome = file.path(outpath, gname)
     dir.create(path_out_scan_genome, showWarnings=FALSE)
 
- 
+
     gl = lapply(chrs, function(x)genome[[x]])
     names(gl) = chrs
     gl = DNAStringSet(gl)
@@ -123,6 +123,7 @@ scan_Genome = function(
             colnames(values(ga))[3] = 'AS'
             colnames(values(ga))[4] = 'RS'
             colnames(values(ga))[8] = 'seq'
+            saveRDS(ga, file = file.path(path_out_scan_genome, str_replace(outname, 'bam','rds')))
             rtracklayer::export(ga, con=BamFile(file.path(path_out_scan_genome, outname)))
         }
     }
