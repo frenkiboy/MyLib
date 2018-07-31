@@ -36,7 +36,7 @@ print.decorated = function (x, useSource = TRUE, ...) {
     invisible(x)
 }
 
-modules::register_S3_method('print', 'decorated', print.decorated)
+modules:::register_S3_method('print', 'decorated', print.decorated)
 
 prettify = function (f, original, decorator_calls) {
     attr(f, 'srcref') = pretty_code(original)
