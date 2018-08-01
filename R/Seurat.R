@@ -15,7 +15,7 @@ Process_Seurat = function(
   pcs_for_tsne = 1:9,
   genes_for_tsne = NULL
   ){
-  source(file.path(pro.path, 'Seurat.R'))
+  source(file.path(lib.path, 'Seurat.R'))
   library(Seurat)
 
   message('Normalize ...')
