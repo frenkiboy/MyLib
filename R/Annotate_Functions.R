@@ -314,7 +314,10 @@ setMethod("AnnotateRanges",signature("GRanges","GRanges"),
 GTFGetAnnotation = function(g, downstream=500, upstream=1000){
 
     g.exon = g[g$type=='exon']
-    exon = unlist(g.exon)
+    if(class(g.exon) == 'GRangesList')
+      exon = unlist(g.exon)
+    else
+      exon = g.exon
     gene = unlist(range(split(g.exon, g.exon$gene_id)))
     tss  = promoters(gene, downstream=downstream, upstream=upstream)
     tts  = promoters(resize(gene, width=1, fix='end'), downstream=downstream,
