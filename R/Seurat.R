@@ -17,7 +17,17 @@ Process_Seurat = function(
   ){
   source(file.path(lib.path, 'Seurat.R'))
   library(Seurat)
+  
+  # -------------------------------------------------------------------------- #
+  if(class(rownames(seu@raw.data)) == 'array'){
+    rownames(seu@raw.data) = as.character(rownames(seu@raw.data))
+  }  
 
+  if(class(rownames(seu@data)) == 'array'){
+    rownames(seu@data) = as.character(rownames(seu@data))
+  }  
+  
+  # -------------------------------------------------------------------------- #
   message('Normalize ...')
     seu = NormalizeData(seu)
 
