@@ -110,7 +110,7 @@ getMeans = function(mat, factors, unique=TRUE){
                                 }})
     }else{
         mean.mat = lapply(unique(factors), function(x){
-            col_ind=which(str_detect(factors,x))
+            col_ind=which(factors == x)
             if(length(col_ind) == 1){
                 return(mat[,col_ind])
             }else{
