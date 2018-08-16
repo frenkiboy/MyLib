@@ -273,7 +273,7 @@ DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, up
 
     # whether the region reduction should be strand oriented
     if(!strand){
-        gsrl = as(g, 'RangesList')
+        gsrl = as(g, 'IRangesList')
         lregs = list()
         lregs = foreach(chr = chrs)%dopar%{
             v = Views(r[chr], gsrl[chr])
