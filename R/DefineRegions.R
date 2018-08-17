@@ -181,7 +181,8 @@ Sample_FindRegion = function(
   lower      = 0,
   upper      = 'max',
   score_filt = TRUE,
-  ncores     = 8
+  ncores     = 8,
+  log        = FALSE
 ){
 
     source(file.path(lib.path, 'ScanLib.R'), local=TRUE)
@@ -199,6 +200,8 @@ Sample_FindRegion = function(
         bwname = str_replace(basename(bw.file),'.bw','')
         print(bwname)
         bw = import.bw(bw.file, as='GRanges')
+        if(log == TRUE)
+            bw$score = log2(bw$score + 1)
 
         if(normalize){
             total = sum(as.numeric(bw$score))
@@ -307,7 +310,7 @@ DefineRegionBorders = function(g, r, down=0.1, up=0.9, strand=FALSE, lower=0, up
             if(any(width(gs) == 1))
                 warning('Some regions have width 1')
 
-            gsrl = as(gs, 'RangesList')
+            gsrl = as(gs, 'IRangesList')
             lregs = foreach(chr = chrs)%dopar%{
                 v = Views(r[chr], gsrl[chr])
                 va = viewApply(v[[chr]], function(x)GetRegs(x, down=down, up=up, strand=s, lower=lower, upper=upper), simplify=FALSE)
