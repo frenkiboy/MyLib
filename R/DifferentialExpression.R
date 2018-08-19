@@ -388,7 +388,8 @@ DESeq_Results = function(
   nsamp                 = 3,
   independent.filtering = TRUE,
   betaPrior             = TRUE,
-  Factor                = 'Factor')
+  Factor                = 'Factor',
+  sample                = 'sample')
 {
 
   suppressPackageStartupMessages({
@@ -404,7 +405,8 @@ DESeq_Results = function(
       des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
 
     message('Counts ...')
-      cnts = as.data.frame(counts(des, normalized=TRUE))
+      cnts = as.data.frame(counts(des, normalized=TRUE)) %>%
+        magrittr::set_colnames(colData(des)[[sample]])
       cnts$id = rownames(cnts)
 
     message('Results ...')
