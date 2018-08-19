@@ -389,7 +389,8 @@ DESeq_Results = function(
   independent.filtering = TRUE,
   betaPrior             = TRUE,
   Factor                = 'Factor',
-  sample                = 'sample')
+  sample                = 'sample',
+  id                    = 'gene_id')
 {
 
   suppressPackageStartupMessages({
@@ -400,6 +401,9 @@ DESeq_Results = function(
 
     source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'),local=TRUE)
+    message('Filtering ...')
+      raw = counts(des, normalized=FALSE)
+      dds = dds[rowSums(raw > nreads) >= nsamp,]
 
     message('DESeq ...')
       des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
@@ -425,13 +429,13 @@ DESeq_Results = function(
     message('Dat ...')
       dat = merge(res, means, by='id')
       dat = merge(dat, cnts, by='id')
-      if(is.null(annot)){
+      if(!is.null(annot)){
          message('Annot...')
         annot$id = annot[[id]]
-        dat = merge(ann, dat, by='id')
-      }
-      dat = dat %>%
+        dat = annot %>%
+          left_join(dat, by='id') %>%
           mutate(id = NULL)
+      }
 
     return(
       list(
