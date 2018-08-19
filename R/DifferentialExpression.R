@@ -95,6 +95,41 @@ makeBinaryContrasts = function(data,column='sample'){
     return(contrasts)
 }
 
+# ------------------------------------------------------------------------------ #
+makeContlist = function(
+  Factor,
+  column  = 'Factor',
+  sort_by = 'up'
+){
+
+  suppressPackageStartupMessages(library(dplyr))
+  if(class(Factor) == 'data.frame')
+    Factor = Factor[[column]]
+
+  Factor = as.character(unique(Factor))
+  contrasts = expand.grid(Factor, Factor, stringsAsFactors=FALSE)
+  contrasts = with(contrasts,
+    data.frame(
+      Var1 = pmin(Var1, Var2),
+      Var2 = pmax(Var1, Var2)
+    )) %>%
+    distinct() %>%
+    dplyr::filter(Var1 != Var2)
+
+    if(sort_by == 'up'){
+      contrasts =  contrasts %>%
+        dplyr::rename(X1 = Var1, X2 = Var2)
+    }
+    if(sort_by == 'down'){
+      contrasts =  contrasts %>%
+        dplyr::rename(X1 = Var2, X2 = Var1)
+    }
+    contnames =  with(contrasts, (results = paste(X1, X2, sep='_')))
+
+    contlist = split(contrasts, contnames)
+    contlist = lapply(contlist,unlist)
+    return(contlist)
+}
 
 
 # ------------------------------------------------------------------------------ #
@@ -341,6 +376,69 @@ get_DifferentialExpression = function(
 
     return(list(trans=trans, txhits = txhits, des = des, vsd=vsd, res=res, dat=dat))
 }
+
+# # ---------------------------------------------------------------------------- #
+DESeq_Results = function(
+  dds,
+  contlist,
+  lfc                   = 1,
+  padj                  = 0.05,
+  annot                 = NULL,
+  nreads                = 5,
+  nsamp                 = 3,
+  independent.filtering = TRUE,
+  betaPrior             = TRUE,
+  Factor                = 'Factor')
+{
+
+  suppressPackageStartupMessages({
+    library(DESeq2)
+    library(dplyr)
+    library(stringr)
+    })
+
+    source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
+    source(file.path(lib.path, 'ScanLib.R'),local=TRUE)
+
+    message('DESeq ...')
+      des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
+
+    message('Counts ...')
+      cnts = as.data.frame(counts(des, normalized=TRUE))
+      cnts$id = rownames(cnts)
+
+    message('Results ...')
+      contlist = as.character(colData(des)[[Factor]])
+      contlist = makeContlist(contlist)
+      contlist = lapply(contlist, function(x)c(Factor, x))
+      res = getResults(des, contlist, lfc=lfc, pval=padj,
+                      independentFiltering=independent.filtering)
+
+    message('Means ...')
+      means = getMeans.DESeqDataSet(des)
+
+
+    message('Dat ...')
+      dat = merge(res, means, by='id')
+      dat = merge(dat, cnts, by='id')
+      if(is.null(annotation)){
+         message('Annot...')
+        annot$id = annot[[id]]
+        dat = merge(ann, dat, by='id')
+      }
+      dat = dat %>%
+          mutate(id = NULL)
+
+    return(
+      list(
+        dds    = dds,
+        des    = des,
+        res    = res,
+        dat    = dat
+      ))
+}
+
+
 #
 # # ---------------------------------------------------------------------------- #
 # getAnnotation_GrangesList = function(gl){
