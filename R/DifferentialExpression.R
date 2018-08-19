@@ -425,7 +425,7 @@ DESeq_Results = function(
     message('Dat ...')
       dat = merge(res, means, by='id')
       dat = merge(dat, cnts, by='id')
-      if(is.null(annotation)){
+      if(is.null(annot)){
          message('Annot...')
         annot$id = annot[[id]]
         dat = merge(ann, dat, by='id')
