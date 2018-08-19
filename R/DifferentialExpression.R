@@ -380,7 +380,7 @@ get_DifferentialExpression = function(
 # # ---------------------------------------------------------------------------- #
 DESeq_Results = function(
   dds,
-  contlist,
+  contlist              = NULL,
   lfc                   = 1,
   padj                  = 0.05,
   annot                 = NULL,
@@ -410,9 +410,11 @@ DESeq_Results = function(
       cnts$id = rownames(cnts)
 
     message('Results ...')
-      contlist = as.character(colData(des)[[Factor]])
-      contlist = makeContlist(contlist)
-      contlist = lapply(contlist, function(x)c(Factor, x))
+      if(is.null(contlist)){
+        contlist = as.character(colData(des)[[Factor]])
+        contlist = makeContlist(contlist)
+        contlist = lapply(contlist, function(x)c(Factor, x))
+      }
       res = getResults(des, contlist, lfc=lfc, pval=padj,
                       independentFiltering=independent.filtering)
 
