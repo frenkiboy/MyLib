@@ -8,6 +8,9 @@ hh <- function(d) d[1:5,1:5]
 
 ln <- function(x)length(unique(x))
 
+source.lib = function(x){source(file.path(lib.path, x))}
+source.pro = function(x){source(file.path(pro.path, x))}
+
 
 # ------------------------------------------------------------------- #
 # calculates the memory usage of objects
