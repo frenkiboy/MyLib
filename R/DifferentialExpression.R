@@ -409,13 +409,13 @@ DESeq_Results = function(
       des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
 
     message('Counts ...')
-      cnts = as.data.frame(counts(des, normalized=TRUE)) %>%
-        magrittr::set_colnames(colData(des)[[sample]])
+      cnts = as.data.frame(counts(dds, normalized=TRUE)) %>%
+        magrittr::set_colnames(colData(dds)[[sample]])
       cnts$id = rownames(cnts)
 
     message('Results ...')
       if(is.null(contlist)){
-        contlist = as.character(colData(des)[[Factor]])
+        contlist = as.character(colData(dds)[[Factor]])
         contlist = makeContlist(contlist)
         contlist = lapply(contlist, function(x)c(Factor, x))
       }
@@ -423,7 +423,7 @@ DESeq_Results = function(
                       independentFiltering=independent.filtering)
 
     message('Means ...')
-      means = getMeans.DESeqDataSet(des)
+      means = getMeans.DESeqDataSet(dds)
 
 
     message('Dat ...')
