@@ -403,10 +403,10 @@ DESeq_Results = function(
     source(file.path(lib.path, 'ScanLib.R'),local=TRUE)
     message('Filtering ...')
       raw = counts(dds, normalized=FALSE)
-      dds = dds[rowSums(raw > nreads) >= nsamp,]
+      dds_sel = dds[rowSums(raw > nreads) >= nsamp,]
 
     message('DESeq ...')
-      des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
+      des = DESeq(dds_sel, parallel=FALSE, betaPrior=betaPrior)
 
     message('Counts ...')
       cnts = as.data.frame(counts(des, normalized=TRUE)) %>%
