@@ -402,20 +402,20 @@ DESeq_Results = function(
     source(file.path(lib.path, 'DifferentialExpression.R'), local=TRUE)
     source(file.path(lib.path, 'ScanLib.R'),local=TRUE)
     message('Filtering ...')
-      raw = counts(des, normalized=FALSE)
+      raw = counts(dds, normalized=FALSE)
       dds = dds[rowSums(raw > nreads) >= nsamp,]
 
     message('DESeq ...')
       des = DESeq(dds, parallel=FALSE, betaPrior=betaPrior)
 
     message('Counts ...')
-      cnts = as.data.frame(counts(dds, normalized=TRUE)) %>%
-        magrittr::set_colnames(colData(dds)[[sample]])
+      cnts = as.data.frame(counts(des, normalized=TRUE)) %>%
+        magrittr::set_colnames(colData(des)[[sample]])
       cnts$id = rownames(cnts)
 
     message('Results ...')
       if(is.null(contlist)){
-        contlist = as.character(colData(dds)[[Factor]])
+        contlist = as.character(colData(des)[[Factor]])
         contlist = makeContlist(contlist)
         contlist = lapply(contlist, function(x)c(Factor, x))
       }
@@ -423,7 +423,7 @@ DESeq_Results = function(
                       independentFiltering=independent.filtering)
 
     message('Means ...')
-      means = getMeans.DESeqDataSet(dds)
+      means = getMeans.DESeqDataSet(des)
 
 
     message('Dat ...')
