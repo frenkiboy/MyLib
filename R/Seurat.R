@@ -91,8 +91,9 @@ Check_Seurat = function(
 #' @param ind a named vector containing the indices of which cells to keep
 #'
 Subset_Seurat = function(
-  seu = NULL,
-  ind = TRUE
+  seu  = NULL,
+  ind  = TRUE,
+  gind = NULL
 ){
   if(is.null(seu))
     stop('Seurat object is not supplied')
@@ -112,6 +113,10 @@ Subset_Seurat = function(
   seu@cell.names = rownames(seu@meta.data)
 
   seu@raw.data = seu@raw.data[,match(rownames(seu@meta.data), colnames(seu@raw.data))]
+  
+  if(!is.null(gind) && all(gind %in% rownames(seu@raw.data)))
+    seu@raw.data = seu@raw.data[gind,]
+  
   seu.sub = CreateSeuratObject(
     raw.data  = seu@raw.data,
     meta.data = seu@meta.data)
