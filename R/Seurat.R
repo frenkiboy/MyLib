@@ -204,3 +204,33 @@ Cell_Cycle_Scoring = function(object, g2m.genes, s.genes, set.ident = FALSE)
   }
   return(object)
 }
+
+# ---------------------------------------------------------------------------- #
+Imprint_Scoring = function(object, paternal.genes, maternal.genes)
+{
+  enrich.name <- "Imprinted"
+  genes.list <- list(Paternal.Score = paternal.genes, Maternal.score = maternal.genes)
+  object.cc <- AddModuleScore(object = object, genes.list = genes.list,
+                              enrich.name = enrich.name, ctrl.size = min(vapply(X = genes.list,
+                                                                                FUN = length, FUN.VALUE = numeric(1))))
+  cc.columns <- grep(pattern = enrich.name, x = colnames(x = object.cc@meta.data))
+  cc.scores <- object.cc@meta.data[, cc.columns]
+  assignments <- apply(X = cc.scores, MARGIN = 1, FUN = function(scores,
+                                                                 first = "P", second = "M", null = "X") {
+    if (all(scores <= 0)) {
+      return(null)
+    }
+    else {
+      return(c(first, second)[which(x = scores == max(scores))])
+    }
+  })
+  cc.scores <- merge(x = cc.scores, y = data.frame(assignments),
+                     by = 0)
+  colnames(x = cc.scores) <- c("rownames", "Paternal.Score", "Maternal.Score",
+                               "Imprint")
+  rownames(x = cc.scores) <- cc.scores$rownames
+  cc.scores <- cc.scores[, c("Paternal.Score", "Maternal.Score","Imprint")]
+  object <- AddMetaData(object = object, metadata = cc.scores)
+  
+  return(object)
+}
