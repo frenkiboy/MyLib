@@ -313,6 +313,13 @@ GRangesTodata.frame = function(g){
 }
 
 # ---------------------------------------------------------------------------- #
+list.bwfiles = function(path, suffix='bw'){
+	bw.files = list.files(path, pattern=paste0(suffix,'$'), recursive=TRUE, full.names=TRUE)
+	return(bw)
+	
+}
+			       
+# ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object
 # suppressPackageStartupMessages(library(S4Vectors))
 # setMethod("showAsCell",signature("DataFrame"),
