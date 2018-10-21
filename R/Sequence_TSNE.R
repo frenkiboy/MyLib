@@ -31,21 +31,9 @@ calculate_kmers = function(seq.all,
     knams = colnames(kmers)
 
     if(reverse.complement){
-        message('Revcomp...')
-        
-        dk = data.frame(k1=colnames(kmers), k2=as.character(reverseComplement(DNAStringSet(colnames(kmers)))))
-        dk = dk[!duplicated(apply(dk,1, function(x)paste(sort(x),collapse=':'))),]
-        lk = list()
-        for(i in 1:nrow(dk)){
-            if(dk[i,1] != dk[i,2]){
-                lk[[dk[i,1]]] = rowSums(kmers[,colnames(kmers) %in% dk[i,,drop=T],with=FALSE])
-            }else{
-                lk[[dk[i,1]]] = kmers[,colnames(kmers) == dk[i,1],with=FALSE]
-            }
-        }
-        kmers = data.table(data.frame(lk))
-        knams = dk$k1
-        
+        lrev = Reverse_Complement_Matrix(kmers)
+        kmers = lrev$kmers
+        knams = lrev$knams
     }
 
     message('Normalization...')
@@ -95,6 +83,26 @@ smoothKmers =  function(kmers, width, alpha=0.3, iter=10, plot){
 
 }
 
+# ---------------------------------------------------------------------------- #
+Reverse_Complement_Matrix = function(
+  kmers
+){
+    message('Revcomp...')
+    dk = data.frame(k1=colnames(kmers), k2=as.character(reverseComplement(DNAStringSet(colnames(kmers)))))
+    dk = dk[!duplicated(apply(dk,1, function(x)paste(sort(x),collapse=':'))),]
+    lk = list()
+    for(i in 1:nrow(dk)){
+          if(dk[i,1] != dk[i,2]){
+              lk[[dk[i,1]]] = rowSums(kmers[,colnames(kmers) %in% dk[i,,drop=T],with=FALSE])
+          }else{
+              lk[[dk[i,1]]] = kmers[,colnames(kmers) == dk[i,1],with=FALSE]
+          }
+    }
+    kmers = data.table(data.frame(lk))
+    knams = dk$k1
+    return(list(kmers, knams))
+}
+                 
 # ---------------------------------------------------------------------------- #
 smoothKmersTime =  function(kmers, width, alpha=0.3, iter=10, plot){
     
