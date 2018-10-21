@@ -43,7 +43,8 @@ calculate_kmers = function(seq.all,
         kmers = smoothfun(kmers,
           width=width,
           alpha=alpha,
-          iter=iter)
+          iter=iter,
+          reverse.complement = reverse.complement)
     }
 
     if(normalize)
@@ -57,7 +58,7 @@ calculate_kmers = function(seq.all,
 }
 
 # ---------------------------------------------------------------------------- #
-smoothKmers =  function(kmers, width, alpha=0.3, iter=10, plot){
+smoothKmers =  function(kmers, width, alpha=0.3, iter=10, plot, reverse.complement){
 
     if(width > 6)
         stop('with > 6 is not supported')
@@ -66,8 +67,13 @@ smoothKmers =  function(kmers, width, alpha=0.3, iter=10, plot){
     str = mkAllStrings(c('A','C','G','T'), width)
     A = as.matrix(stringDist(str, method='hamming'))
     A[A > 1] = 0
+    if(reverse.complement){
+      lA = Reverse_Complement_Matrix(A)
+      A = lA$kmers
+    }
+
     A = A/colSums(A)
-    
+
   kmers.0 = as.matrix(kmers)
   kmers.smooth = kmers.0
   lnorm = list()
