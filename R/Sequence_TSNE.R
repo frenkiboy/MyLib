@@ -8,7 +8,7 @@ calculate_kmers = function(seq.all,
                            reverse.complement=TRUE,
                            smooth=FALSE,
                            alpha=.3,
-                           iter=100, 
+                           iter=1, 
                            smoothfun='smoothKmers'){
 
     if(class(seq.all) != 'DNAStringSet')
