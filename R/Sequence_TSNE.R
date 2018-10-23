@@ -383,5 +383,105 @@ run_SmoothTest = function(seq,
         }
     dev.off()
 }
-        
+                   
+# ---------------------------------------------------------------------------- #
+#' sample_kmers - samples tSNE kmer to get the background density distribuion of points
+#'
+#' @param d - data.frame containing tSNE coordinates for each sequence.
+#' should contain columns X1 and X2
+#' @param nreps - number of times to repeat the sampling
+#' @param nsamp - number of genes to sample
+#' @param resolution - grid size for determining the density. larger number, smaller boxes
+#'
+#' @return a data.frame with densities for each grid box
+sample_kmers = function(
+    d, 
+    nreps = 500,
+    nsamp = 1000,
+    resolution = 20
+){
+    lsamp = list()
+    for(i in 1:nreps){
+        cat(i,'\r')
+        dist = d %>%
+            mutate(X1_coord = cut(X1, seq(min(X1), max(X1), length.out=resolution))) %>%
+            mutate(X2_coord = cut(X2, seq(min(X2), max(X2), length.out=resolution))) %>%
+            dplyr::filter(1:n() %in% sample(1:n(), nsamp)) %>%
+            group_by(X1_coord, X2_coord) %>%
+            summarize(N = n()) %>%
+            mutate(grid = paste(X1_coord, X2_coord, sep=':')) %>%
+            ungroup() %>%
+            dplyr::select(grid, N) %>%
+            mutate(rep = i)
+        lsamp = c(lsamp, list(dist))
+    }
+    dsamp = data.table::rbindlist(lsamp) %>%
+        group_by(grid) %>%
+        summarize(
+            mean = mean(N),
+            sd   = sd(N))
+    
+    return(dsamp)
+}
+
+# ---------------------------------------------------------------------------- #
+#' Labels sequences which with higher density on tSNE
+#' Background density distribution is calculated by resampling. 
+#' @param d - data.frame with tSNE coordinates for each sequence
+#' @param indicator - a variable indication which points should be tested for
+#' over/under representation (i.e. subset of sequences of interest)
+#' @param nreps - number of times to repeat the sampling
+#' @param resolution - grid size for determining the density. larger number, smaller boxes.
+#' default 20 (returns 20x20 grid)
+#'
+#' @param nsd - number of standard deviations the indicator density needs to be
+#' higher than the background density. Default 2
+#'
+#' @return data.frame d with extended columns
+#'
+#' @examples
+#' workflow:
+#' DNAString -> calculate_kmers -> Rtsne -> find_enriched_kmer_regions                   
+find_enriched_kmer_regions = function(
+    d,
+    indicator  = NULL,
+    nreps      = 500,
+    resolution = 20,
+    nsd        = 2
+){
+    if(is.null(indicator))
+        stop('Indicator variable needs to be set')
+    
+    if(!indicator %in% colnames(d))
+        stop('Indicator is not in column names')
+    
+    if(!is.logical(d[[indicator]]))
+        stop('Indicator needs to be boolean')
+    
+    nsamp = sum(d[[indicator]])
+    samps = sample_kmers(d, nsamp=nsamp, resolution=resolution, nreps=nreps)
+    d = d %>%
+        mutate(X1_coord = cut(X1, seq(min(X1), max(X1), length.out=resolution))) %>%
+        mutate(X2_coord = cut(X2, seq(min(X2), max(X2), length.out=resolution))) %>%
+        mutate(grid = paste(X1_coord, X2_coord, sep=':')) %>%
+        dplyr::select(-X1_coord, -X2_coord) 
+    
+    dc = d %>%  
+        filter_(indicator) %>%
+        group_by(grid) %>%
+        summarize(N = n()) %>%
+        left_join(samps, by='grid') %>%
+        mutate(score = (N - mean) / sd) %>%
+        mutate(over  = score >  nsd) %>%
+        mutate(under = score < -nsd)
+    
+    d = d %>%
+        left_join(
+            dc %>%
+                dplyr::select(grid, score, over, under),
+            by='grid'
+        )
+    
+    return(d) 
+}                   
     
