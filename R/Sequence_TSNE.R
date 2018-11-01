@@ -491,7 +491,7 @@ find_enriched_kmer_regions = function(
 #' Given a list of sequences and patterns, finds common statistics for the patterns
 #' Background density distribution is calculated by resampling. 
 #' @param seqs - DNAStringSet object
-#' @param patterns - list of char. Patterns to look for
+#' @param patterns - list or vector of char. Patterns to look for
 get_pattern_stats = function(seqs, patterns){
     
       suppressPackageStartupMessages({
