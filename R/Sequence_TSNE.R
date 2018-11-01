@@ -484,4 +484,40 @@ find_enriched_kmer_regions = function(
     
     return(d) 
 }                   
+
+                   
+                   
+# ---------------------------------------------------------------------------- #
+#' Given a list of sequences and patterns, finds common statistics for the patterns
+#' Background density distribution is calculated by resampling. 
+#' @param seqs - DNAStringSet object
+#' @param patterns - list of char. Patterns to look for
+get_pattern_stats = function(seqs, patterns){
     
+      suppressPackageStartupMessages({
+        library(Biostrings)
+        library(GenomicRanges)
+        library(dplyr)
+      })
+      shits = lapply(patterns, function(x){
+        hits = vmatchPattern(x, seqs)
+        hits = as(hits, 'GRanges')
+      })
+      shits = unlist(GRangesList(shits))
+      shits = reduce(shits)
+      shits = split(shits, seqnames(shits))
+      stat = data.frame(
+        N    = elementNROWS(shits),
+        maxlen = max(width(shits)),
+        totlen = sum(width(shits))
+      ) %>%
+      mutate(maxlen = case_when(
+        N == 0 ~ as.integer(0),
+        TRUE ~ maxlen
+      )) %>%
+        mutate(totlen = case_when(
+          N == 0 ~ as.integer(0),
+          TRUE ~ totlen
+        ))
+      return(stat)
+    }
