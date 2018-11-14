@@ -1,15 +1,28 @@
 
 # ---------------------------------------------------------------------------- #
-# does tsne dimensionallity reduction on sequence kmer
-
+# calculates kmer frequencies for DNAStringSet
+# Performs kmer smoothing
+#'
+#'
+#' @param seq.all DNAStringSet
+#' @param width kmer size
+#' @param normalize whether to normalize to the geometric mean
+#' @param reverse.complement collapse reverse complements
+#' @param smooth perform kmer smoothing
+#' @param alpha smoothing strength
+#' @param iter number of smoothing iterations (should be 1)
+#' @param smoothfun
+#'
+#' @return a matrix of normalized kmer frequencies
 calculate_kmers = function(seq.all,
-                           width=6,
-                           normalize=TRUE,
-                           reverse.complement=TRUE,
-                           smooth=FALSE,
-                           alpha=.3,
-                           iter=1, 
-                           smoothfun='smoothKmers'){
+                           width              = 6,
+                           normalize          = TRUE,
+                           reverse.complement = TRUE,
+                           smooth             = FALSE,
+                           alpha              = .3,
+                           iter               = 1,
+                           smoothfun          ='smoothKmers'
+){
 
     if(class(seq.all) != 'DNAStringSet')
         stop('ds needs to be DNAStringSet')
@@ -31,27 +44,27 @@ calculate_kmers = function(seq.all,
     knams = colnames(kmers)
 
     if(reverse.complement){
-        lrev = Reverse_Complement_Matrix(kmers)
+        lrev  = Reverse_Complement_Matrix(kmers)
         kmers = lrev$kmers
         knams = lrev$knams
     }
 
     message('Normalization...')
-    kmers = kmers/rowSums(kmers)
+    kmers = kmers/base::rowSums(kmers)
     if(smooth){
         smoothfun = match.fun(smoothfun)
         kmers = smoothfun(kmers,
-          width=width,
-          alpha=alpha,
-          iter=iter,
+          width = width,
+          alpha = alpha,
+          iter  = iter,
           reverse.complement = reverse.complement)
     }
 
     if(normalize)
-        kmers = log((kmers+1)/exp(rowMeans(log(kmers+1))))
+        kmers = log((kmers+1)/exp(base::rowMeans(log(kmers+1))))
     message('Colnames...')
     colnames(kmers) = knams
-    
+
     message('Returning...')
     return(as.matrix(kmers))
 
@@ -67,26 +80,68 @@ smoothKmers =  function(kmers, width, alpha=0.3, iter=10, plot, reverse.compleme
     str = mkAllStrings(c('A','C','G','T'), width)
     A = as.matrix(stringDist(str, method='hamming'))
     A[A > 1] = 0
+    colnames(A) = rownames(A) = str
     if(reverse.complement){
-      lA = Reverse_Complement_Matrix(A)
-      A = lA$kmers
+      A = Reverse_Complement_Model(A)
     }
 
     A = A/colSums(A)
 
-  kmers.0 = as.matrix(kmers)
-  kmers.smooth = kmers.0
-  lnorm = list()
-  lnorm[['0']] = kmers.0
-  for(i in 1:iter){
-      kmers.smooth = alpha*(kmers.smooth%*%A) + (1-alpha)*(kmers.0)
-      lnorm[[as.character(i)]] = kmers.smooth
-  }
-  lnorm = lapply(2:length(lnorm), function(x)sum((lnorm[[x]] - lnorm[[x-1]])^2))
-  dnorm = data.frame(iter=seq_along(lnorm), norm=unlist(lnorm))
-  attr(kmers.smooth,'norm') = dnorm
-  return(kmers.smooth)
+    kmers.0 = as.matrix(kmers)
+    kmers.smooth = kmers.0
+    lnorm = list()
+    lnorm[['0']] = kmers.0
+    for(i in 1:iter){
+        kmers.smooth = alpha*(kmers.smooth%*%A) + (1-alpha)*(kmers.0)
+        lnorm[[as.character(i)]] = kmers.smooth
+    }
+    lnorm = lapply(2:length(lnorm), function(x)sum((lnorm[[x]] - lnorm[[x-1]])^2))
+    dnorm = data.frame(iter=seq_along(lnorm), norm=unlist(lnorm))
+    attr(kmers.smooth,'norm') = dnorm
+    return(kmers.smooth)
 
+}
+
+# ---------------------------------------------------------------------------- #
+Reverse_Complement_Model = function(
+    kdist
+){
+    message('Model matrix reverse complement ...')
+    if(nrow(kdist) != ncol(kdist))
+        stop('kdist needs to be a square matrix')
+
+    if(is.matrix(kdist))
+        kdist = data.table(kdist)
+
+    cnams = colnames(kdist)
+    dk = data.frame(k1=colnames(kdist), k2=as.character(reverseComplement(DNAStringSet(colnames(kdist)))))
+    dk = dk[!duplicated(apply(dk,1, function(x)paste(sort(x),collapse=':'))),]
+
+    message('Columns ...')
+    lk = list()
+    for(i in 1:nrow(dk)){
+        if(dk[i,1] != dk[i,2]){
+            lk[[dk[i,1]]] = base::rowSums(kdist[,cnams %in% dk[i,,drop=T],with=FALSE])
+        }else{
+            lk[[dk[i,1]]] = kdist[,cnams == dk[i,1],with=FALSE]
+        }
+    }
+    ksmooth = data.table(data.frame(lk))
+
+    message('Rows ...')
+    lk = list()
+    for(i in 1:nrow(dk)){
+        if(dk[i,1] != dk[i,2]){
+            lk[[dk[i,1]]] = data.table(base::colSums(ksmooth[cnams %in% dk[i,,drop=T],]))
+        }else{
+            lk[[dk[i,1]]] = data.table(ksmooth[cnams == dk[i,1],])
+        }
+    }
+
+    ksmooth = t(data.frame(lk))
+    ksmooth[ksmooth > 1] = 1
+    colnames(ksmooth) = rownames(ksmooth) = dk[,1]
+    return(ksmooth)
 }
 
 # ---------------------------------------------------------------------------- #
@@ -94,42 +149,47 @@ Reverse_Complement_Matrix = function(
   kmers
 ){
     message('Revcomp...')
+    suppressPackageStartupMessages({
+        library(data.table)
+    })
+    if(is.matrix(kmers))
+        kmers = data.table(kmers)
     dk = data.frame(k1=colnames(kmers), k2=as.character(reverseComplement(DNAStringSet(colnames(kmers)))))
     dk = dk[!duplicated(apply(dk,1, function(x)paste(sort(x),collapse=':'))),]
     lk = list()
     for(i in 1:nrow(dk)){
           if(dk[i,1] != dk[i,2]){
-              lk[[dk[i,1]]] = rowSums(kmers[,colnames(kmers) %in% dk[i,,drop=T],with=FALSE])
+              lk[[dk[i,1]]] = base::rowSums(kmers[,colnames(kmers) %in% dk[i,,drop=T],with=FALSE])
           }else{
               lk[[dk[i,1]]] = kmers[,colnames(kmers) == dk[i,1],with=FALSE]
           }
     }
-    kmers = data.table(data.frame(lk))
+    kmers_smooth = data.table(data.frame(lk))
     knams = dk$k1
-    return(list(kmers, knams))
+    return(list(kmers=kmers_smooth, knams=knams))
 }
-                 
+
 # ---------------------------------------------------------------------------- #
 smoothKmersTime =  function(kmers, width, alpha=0.3, iter=10, plot){
-    
+
     if(width > 6)
         stop('with > 6 is not supported')
-    
+
     require(Biostrings)
     str = mkAllStrings(c('A','C','G','T'), width)
     A = as.matrix(stringDist(str, method='hamming'))
     A[A > 1] = 0
     A = A/colSums(A)
-    
+
     kmers.0 = as.matrix(kmers)
     kmers.smooth = kmers.0
     for(i in 1:iter){
         kmers.smooth = alpha*(kmers.smooth%*%A) + (1-alpha)*(kmers.0)
         alpha = alpha/2
-        
+
     }
     return(data.table(kmers.smooth))
-    
+
 }
 
 # ---------------------------------------------------------------------------- #
@@ -183,7 +243,7 @@ get_tsne = function(kmers, coldata, per=30, dims=3){
 }
 # ---------------------------------------------------------------------------- #
 
-plot_tsne = function(ldat, color=NULL, shape=NULL, path.out, outname=NULL, 
+plot_tsne = function(ldat, color=NULL, shape=NULL, path.out, outname=NULL,
                      size=.8, width=25, height=8){
 
   require(cowplot)
@@ -334,37 +394,37 @@ run_SmoothTest = function(seq,
                         normalize=TRUE,
                         alpha = .3,
                         iter=10,
-                        
+
                         path.out,
-                        outname='SmoothTest', 
+                        outname='SmoothTest',
                         smoothfun='smoothKmers'){
-    
+
     require(doMC)
     registerDoMC(ncores)
     message('Outname...')
-    
+
     outname=paste(outname, smoothfun, sep='_')
     if(normalize)
         outname=paste(outname, 'gnorm', sep='.')
-    
+
     if(reverse.complement)
         outname=paste(outname, 'rc', sep='.')
-    
+
     outname=paste(outname, 'sm', sep='.')
     outname=paste(outname, paste0('kw', kmer.width),sep='.')
-    
+
     pdf(file.path(path.out, paste(outname, 'pdf', sep='.')), width=5, height=5)
         for(a in alpha){
             for(i in iter){
                 message(paste(a, i))
-    
+
             kmers = calculate_kmers(seq,
                             kmer.width,
                             normalize=normalize,
                             reverse.complement=reverse.complement,
                             smooth=TRUE,
                             alpha=a,
-                            iter=i, 
+                            iter=i,
                             smoothfun=smoothfun)
             kmers = kmers
             var = apply(kmers, 2, sd)
@@ -378,12 +438,12 @@ run_SmoothTest = function(seq,
             g=ggplot(attr(kmers,'norm'), aes(x=iter, y=norm)) + geom_point(size=.8)
                 # geom_text(data=subset(d, sum+var>1), color='red', size=1) +
             print(g)
-            
+
             }
         }
     dev.off()
 }
-                   
+
 # ---------------------------------------------------------------------------- #
 #' sample_kmers - samples tSNE kmer to get the background density distribuion of points
 #'
@@ -395,7 +455,7 @@ run_SmoothTest = function(seq,
 #'
 #' @return a data.frame with densities for each grid box
 sample_kmers = function(
-    d, 
+    d,
     nreps = 500,
     nsamp = 1000,
     resolution = 20
@@ -420,13 +480,13 @@ sample_kmers = function(
         summarize(
             mean = mean(N),
             sd   = sd(N))
-    
+
     return(dsamp)
 }
 
 # ---------------------------------------------------------------------------- #
 #' Labels sequences which with higher density on tSNE
-#' Background density distribution is calculated by resampling. 
+#' Background density distribution is calculated by resampling.
 #' @param d - data.frame with tSNE coordinates for each sequence
 #' @param indicator - a variable indication which points should be tested for
 #' over/under representation (i.e. subset of sequences of interest)
@@ -441,7 +501,7 @@ sample_kmers = function(
 #'
 #' @examples
 #' workflow:
-#' DNAString -> calculate_kmers -> Rtsne -> find_enriched_kmer_regions                   
+#' DNAString -> calculate_kmers -> Rtsne -> find_enriched_kmer_regions
 find_enriched_kmer_regions = function(
     d,
     indicator  = NULL,
@@ -451,22 +511,22 @@ find_enriched_kmer_regions = function(
 ){
     if(is.null(indicator))
         stop('Indicator variable needs to be set')
-    
+
     if(!indicator %in% colnames(d))
         stop('Indicator is not in column names')
-    
+
     if(!is.logical(d[[indicator]]))
         stop('Indicator needs to be boolean')
-    
+
     nsamp = sum(d[[indicator]])
     samps = sample_kmers(d, nsamp=nsamp, resolution=resolution, nreps=nreps)
     d = d %>%
         mutate(X1_coord = cut(X1, seq(min(X1), max(X1), length.out=resolution))) %>%
         mutate(X2_coord = cut(X2, seq(min(X2), max(X2), length.out=resolution))) %>%
         mutate(grid = paste(X1_coord, X2_coord, sep=':')) %>%
-        dplyr::select(-X1_coord, -X2_coord) 
-    
-    dc = d %>%  
+        dplyr::select(-X1_coord, -X2_coord)
+
+    dc = d %>%
         filter_(indicator) %>%
         group_by(grid) %>%
         summarize(N = n()) %>%
@@ -474,26 +534,26 @@ find_enriched_kmer_regions = function(
         mutate(score = (N - mean) / sd) %>%
         mutate(over  = score >  nsd) %>%
         mutate(under = score < -nsd)
-    
+
     d = d %>%
         left_join(
             dc %>%
                 dplyr::select(grid, score, over, under),
             by='grid'
         )
-    
-    return(d) 
-}                   
 
-                   
-                   
+    return(d)
+}
+
+
+
 # ---------------------------------------------------------------------------- #
 #' Given a list of sequences and patterns, finds common statistics for the patterns
-#' Background density distribution is calculated by resampling. 
+#' Background density distribution is calculated by resampling.
 #' @param seqs - DNAStringSet object
 #' @param patterns - list or vector of char. Patterns to look for
 get_pattern_stats = function(seqs, patterns){
-    
+
       suppressPackageStartupMessages({
         library(Biostrings)
         library(GenomicRanges)
