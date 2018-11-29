@@ -320,12 +320,13 @@ list.bwfiles = function(path, suffix='bw'){
 }
 			     
 # ---------------------------------------------------------------------------- #
-gzfile = function(file){
-	command = paste('gzip -f', file)
+gzfile = function(infile){
+	outfile = paste(infile,'gz','.')
+	command = paste('gzip -f', infile)
 	message('zipping file ...')
 	system(command)
 	message('zipping done')
-	invisible(paste(file,'gz','.'))
+	invisible(outfile)
 }
 			       
 # ---------------------------------------------------------------------------- #
