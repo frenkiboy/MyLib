@@ -325,6 +325,7 @@ gzfile = function(file){
 	message('zipping file ...')
 	system(command)
 	message('zipping done')
+	invisible(paste(file,'gz','.'))
 }
 			       
 # ---------------------------------------------------------------------------- #
