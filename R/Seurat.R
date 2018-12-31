@@ -39,7 +39,7 @@ Process_Seurat = function(
     if(is.null(scnorm_cond))
       scnorm_cond = rep(1, nrow(seu@meta.data))
   
-    seu@data = SCnorm(data = seu@raw.data, conditions=scnorm_conditions, NCores=scnorm_ncores)
+    seu@data = SCnorm(Data = seu@raw.data, Conditions=scnorm_conditions, NCores=scnorm_ncores)
   }
 
     if(is.null(regress)){
