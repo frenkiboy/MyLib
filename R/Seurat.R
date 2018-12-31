@@ -39,7 +39,13 @@ Process_Seurat = function(
     if(is.null(scnorm_cond))
       scnorm_cond = rep(1, nrow(seu@meta.data))
   
-    seu@data = SCnorm(Data = seu@raw.data, Conditions=scnorm_cond, NCores=scnorm_ncores)
+    mat = as.matrix(seu@raw.data)
+    colnames(mat) = as.character(1:ncol(mat))
+    names(scnorm_cond) = colnames(mat)
+    sce = SCnorm(Data = mat, Conditions=scnorm_cond, NCores=scnorm_ncores)
+    ass = assays(a)$normcounts
+    colnames(ass) = colnames(seu@raw.data)
+    seu@data = ass
   }
 
     if(is.null(regress)){
