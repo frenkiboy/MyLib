@@ -296,13 +296,24 @@ CisgenomeReader = function(path){
 #####----------------------------------------------------------------------------------------------#####
 
 
-#####----------------------------------------------------------------------------------------------#####
-# reads in the encode broad peak format
-BroadPeakReader = function(path){
-
-	a = read.table(path, header=F)
-	names(a) = c('chr','start','end','name','score','strand','signal','p.val','q.val')
-	a$strand[!a$strand %in% c('+','-','*')] = '*'
-	return(a)
+# ---------------------------------------------------------------------------- #
+read_SJ = function(
+  path
+){
+  suppressPackageStartupMessages(library(data.table))
+  files = list.files(path, full.names=TRUE, pattern='SJ', recursive=TRUE)
+  cnams = c('chr','start','end','strand','motif','annot','uniq','mult','overhang')
+  lf = list()
+  for(i in files){
+    name = sub('SJ.out.tab','',basename(i))
+    name = sub('\\W$','',name)
+    message(name)
+    tab  = data.table::fread(i)
+    setnames(tab, cnams)
+    tab[,sample := name]
+    lf[[name]] = tab
+  }
+  dtab = rbindlist(lf)
+  return(dtab)
 }
-#####----------------------------------------------------------------------------------------------#####
+
