@@ -55,25 +55,25 @@ MappingStats_STAR = function(path){
     return(d)
 }
 
-
 # ------------------------------------------------------------------------ #
-# for bowtie
-MappingStats_Salmon = function(path){
+# for Salmon
+MappingStats_SALMON = function(path){
 
-    require(stringr)
-    require(data.table)
-    s = scan(path, what='character', sep='\t', quiet=TRUE)
-    s = str_replace(s,'^.+: ','')
-    s = str_replace(s,'Reported ','')
-    s = str_replace(s,' .+','')
-    s = as.numeric(s)
-    d = data.table(sample= str_replace(basename(path),'.log',''),
-                   mapped= c('reads.total','map.uniq','map.mult','map.disc','map.total'),
-                   cnts  = c(s[1:4],s[2]+s[3]))
+      suppressPackageStartupMessages({
+        require(stringr)
+        require(data.table)
+        library(jsonlite)
+        })
 
-    d[,freq := round(cnts/cnts[1],3)]
-    return(d)
-}
+      s = jsonlite::read_json(path)
+      d = data.frame(
+        sample       = basename(str_replace(path,'/aux_info/meta_info.json','')),
+        total_reads  = s$num_processed,
+        total_mapped = s$num_mapped,
+        perc_mapped  = s$percent_mapped
+      )
+      return(d)
+  }
 
 
 # ------------------------------------------------------------------------ #
@@ -87,7 +87,15 @@ GetMappingStats = function(path, which.stats=NULL, suffix=NULL){
 	if(is.null(which.stats))
 		stop('Specify the mapper')
 
-  which.list = list(bowtie='log$', star='Log.final.out$', STAR='Log.final.out$',bowtie2='log',Bowtie2='log')
+  which.list = list(
+	  bowtie  = 'log$', 
+	  star    = 'Log.final.out$', 
+	  STAR    = 'Log.final.out$',
+	  bowtie2 = 'log',
+	  Bowtie2 = 'log',
+	  salmon  = 'meta_info.json',
+	  SALMON  = 'meta_info.json'
+  )
 
   if(is.null(suffix) && !which.stats %in% names(which.list))
     stop('which.stats not correct')
@@ -118,6 +126,9 @@ GetMappingStats = function(path, which.stats=NULL, suffix=NULL){
 
     if(which.stats %in% c('bowtie2','Bowtie2'))
 	lstat = lapply(files, MappingStats_Bowtie2)
+	
+    if(which.stats %in% c('salmon','SALMON'))
+	lstat = lapply(files, MappingStats_SALMON)
 
     dstat = rbindlist(lstat)
     return(dstat)
