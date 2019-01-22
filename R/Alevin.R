@@ -39,8 +39,13 @@ Alevin_To_Seurat = function(
   project_name = 'SingleCell'
 ){
 
+   
   if(is.null(path))
     stop('Please provide a path')
+    
+  library(Seurat)
+  library(dplyr)
+  library(stringr)
   dirs = list.files(path)
   lseu = list()
   for(i in 1:length(dirs)){
