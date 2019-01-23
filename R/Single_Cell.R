@@ -4,10 +4,10 @@ read_CellCycle = cacheFile(path_RDS) %@% function(
     path_gtf = NULL
 ){
 
-    if(is.null(path_cc) || !file.exist(path_cc))
+    if(is.null(path_cc) || !file.exists(path_cc))
         stop('Cell cycle genes are not specified')
 
-    if(is.null(path_gtf) || !file.exist(path_gtf))
+    if(is.null(path_gtf) || !file.exists(path_gtf))
         stop('GTF genes are not specified')
 
     suppressPackageStartupMessages({
