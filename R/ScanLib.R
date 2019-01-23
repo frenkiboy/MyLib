@@ -318,6 +318,16 @@ list.bwfiles = function(path, suffix='bw'){
 	return(bw.files)
 	
 }
+			     
+# ---------------------------------------------------------------------------- #
+gzfile = function(infile){
+	outfile = paste(infile,'gz',sep='.')
+	command = paste('gzip -f', infile)
+	message('zipping file ...')
+	system(command)
+	message('zipping done')
+	return(invisible(outfile))
+}
 			       
 # ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object

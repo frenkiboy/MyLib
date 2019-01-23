@@ -10,10 +10,13 @@ library(Seurat)
 
 Process_Seurat = function(
   seu,
-  regress      = NULL,
-  tsne         = TRUE,
-  pcs_for_tsne = 1:9,
-  genes_for_tsne = NULL
+  regress        = NULL,
+  tsne           = TRUE,
+  pcs_for_tsne   = 1:9,
+  genes_for_tsne = NULL,
+  scnorm         = FALSE,
+  scnorm_cond    = NULL,
+  scnorm_ncores  = 8
   ){
   source(file.path(lib.path, 'Seurat.R'))
   library(Seurat)
@@ -29,7 +32,21 @@ Process_Seurat = function(
   
   # -------------------------------------------------------------------------- #
   message('Normalize ...')
+  if(scnorm == FALSE){
     seu = NormalizeData(seu)
+  }else{
+    library(SCnorm)
+    if(is.null(scnorm_cond))
+      scnorm_cond = rep(1, nrow(seu@meta.data))
+  
+    mat = as.matrix(seu@raw.data)
+    colnames(mat) = as.character(1:ncol(mat))
+    names(scnorm_cond) = colnames(mat)
+    sce = SCnorm(Data = mat, Conditions=scnorm_cond, NCores=scnorm_ncores)
+    ass = assays(a)$normcounts
+    colnames(ass) = colnames(seu@raw.data)
+    seu@data = ass
+  }
 
     if(is.null(regress)){
       message('Scale ...')
