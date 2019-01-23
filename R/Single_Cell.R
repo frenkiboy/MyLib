@@ -23,7 +23,6 @@ read_CellCycle = cacheFile(path_RDS) %@% function(
     cc = read.table(path_cc) %>%
         mutate(cycle = rep(c('S','G2M'), times=c(43,55))) %>%
         `colnames<-`(c('gene_name','cycle')) %>%
-        rbind(read.table(path_g0, header=TRUE)) %>%
         merge(annot, by='gene_name') %>%
         arrange(cycle)
 
