@@ -336,7 +336,12 @@ GTFGetAnnotation = function(g, downstream=500, upstream=1000){
 
 # ---------------------------------------------------------------------------- #
 # annotates a bam file with a given annotation list
-Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
+Annotate_Reads = function(
+  infile,
+  annotation,
+  ignore.strand=FALSE,
+  ncores=8
+){
 
     require(doMC)
     registerDoMC(ncores)
@@ -346,45 +351,54 @@ Annotate_Reads = function(infile, annotation, ignore.strand=FALSE, ncores=8){
     message('Looping ...')
     lchr = foreach(chr = chrs$chr)%dopar%{
 
-        w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
-        reads = readGAlignments(infile, use.names=TRUE, param=ScanBamParam(which=w))
-        g = granges(reads, use.names=TRUE, use.mcols=TRUE)
-        if(length(g) == 0)
-            return(data.table(rname=NA, annot=NA, uniq=NA))
+          w = GRanges(chr, IRanges(1, chrs$chrlen[chrs$chr==chr]))
+          reads = readGAlignments(
+            infile,
+            use.names = TRUE,
+            param = ScanBamParam(which=w)
+          )
+          g = granges(reads, use.names=TRUE, use.mcols=TRUE)
+          if(length(g) == 0)
+              return(data.table(rname=NA, annot=NA, uniq=NA))
 
-        g$annot = suppressMessages(AnnotateRanges(g, annotation, ignore.strand=ignore.strand))
-        g = g[order(match(g$annot, c(names(annotation),'None')))]
-        dg = data.table(rname = names(g), annot=g$annot)
-        dg[,uniq := .N, by=rname]
-        dg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
-        dg = split(dg, dg$annot)
-        dg = dg[c(names(annotation),'None')]
-        dg = rbindlist(dg)
-        dg = dg[!duplicated(dg$rname)]
-        return(dg)
-    }
-    message('Merging ...')
-    ldg = rbindlist(lchr)
-    ldg[,uniq := NULL]
-    ldg[,uniq := .N, by=rname]
-    ldg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
-    ldg = split(ldg, ldg$annot)
-    ldg = ldg[c(names(annotation),'None')]
-    ldg = rbindlist(ldg)
-    ldg = ldg[!duplicated(ldg$rname)]
-    ldg = na.omit(ldg)
+          g$annot = suppressMessages(AnnotateRanges(g, annotation, ignore.strand=ignore.strand))
+          g = g[order(match(g$annot, c(names(annotation),'None')))]
+          dg = data.table(rname = names(g), annot=g$annot)
+          dg[,uniq := .N, by=rname]
+          dg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
+          dg = split(dg, dg$annot)
+          dg = dg[c(names(annotation),'None')]
+          dg = rbindlist(dg)
+          dg = dg[!duplicated(dg$rname)]
+          return(dg)
+      }
+      message('Merging ...')
+      ldg = rbindlist(lchr)
+      ldg[,uniq := NULL]
+      ldg[,uniq := .N, by=rname]
+      ldg[,uniq := ifelse(uniq == 1,'Uniq','Mult')]
+      ldg = split(ldg, ldg$annot)
+      ldg = ldg[c(names(annotation),'None')]
+      ldg = rbindlist(ldg)
+      ldg = ldg[!duplicated(ldg$rname)]
+      ldg = na.omit(ldg)
 
-    sdg = data.table(experiment = BamName(infile),
-                     ldg[,list(cnts=length(rname)), by=list(annot,uniq)])
+      sdg = data.table(experiment = BamName(infile),
+                       ldg[,list(cnts=length(rname)), by=list(annot,uniq)])
 
-    sdg[,freq:=round(cnts/sum(cnts),2)]
+      sdg[,freq:=round(cnts/sum(cnts),2)]
     return(sdg)
 }
 
 
 # ---------------------------------------------------------------------------- #
 # Annotates a list of bam files with a given list of annotation
-Annotate_Bamfiles = function(bamfiles, annotation, ignore.strand=FALSE, ncores=8){
+Annotate_Bamfiles = function(
+  bamfiles,
+  annotation,
+  ignore.strand=FALSE,
+  ncores=8
+){
 
     require(data.table)
     ld = list()
@@ -555,4 +569,3 @@ Annotate_Peaks = function(peaks, gtf, exon_id = 'exon', annot_id = 'annot',
     return(peaks)
 
 }
-
