@@ -73,7 +73,7 @@ read_Gene_Annotation = cacheFile(path_RDS) %@% function(
 
     if(class(path_gtf) == 'character'){
         gtf = import.gff(path_gtf)
-    else{
+    }else{
         gtf = path_gtf
     }
     gtf = subset(gtf, type == 'exon')
@@ -106,7 +106,7 @@ read_Annotation = function(
 
     if(class(path_gtf) == 'character'){
         gtf = import.gff(path_gtf)
-    else{
+    }else{
         gtf = path_gtf
     }
     gtf = subset(gtf, type == 'exon')
