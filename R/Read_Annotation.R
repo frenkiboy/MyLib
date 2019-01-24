@@ -1,3 +1,7 @@
+source.lib('Decorate.R')
+source.lib('Decorators.R')
+
+
 # --------------------------------------------------------------------------------------------------------- #
 # Reads the gtf annotation
 ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
@@ -50,20 +54,64 @@ ReadGTFAnnotation = function(gtf.path, which.regions='exon', ensembl=FALSE){
 }
 
 
+
 # ---------------------------------------------------------------------------- #
-read_Annotation = function(annot){
+# reads the complete gene annotation from the gtf file
+read_Gene_Annotation = cacheFile(path_RDS) %@% function(
+    path_gtf = NULL
+){
 
-   library(genomation)
-   source(file.path(lib.path, 'Read_Annotation.R'))
-   annotation = list()
-   if(!is.null(annot$cpg))
-       annotation$cpg  = readGeneric(annot$cpg, header=FALSE, skip=1)
 
-   if(!is.null(annot$gtf))
-       annotation$gtf  = ReadGTFAnnotation(annot$gtf)
+  if(is.null(path_gtf) || !file.exists(path_gtf))
+      stop('GTF genes are not specified')
 
-   if(!is.null(annot$repeats))
-       annotation$reps = readRDS(annot$reps)
+    suppressPackageStartupMessages({
+        library(rtracklayer)
+        library(GenomicRanges)
+        library(dplyr)
+    })
 
-   return(annotation)
+    if(class(path_gtf) == 'character'){
+        gtf = import.gff(path_gtf)
+    else{
+        gtf = path_gtf
+    }
+    gtf = subset(gtf, type == 'exon')
+
+    gl = range(split(gtf, gtf$gene_id))
+
+    g = unique(as.data.frame(values(gtf))) %>%
+        dplyr::select(gene_id, gene_name, gene_biotype) %>%
+	      distinct() %>%
+        mutate(id = as.character(unlist(gl[gene_id])))
+    return(g)
+}
+
+
+# ---------------------------------------------------------------------------- #
+# reads two columns from the gtf annotation
+read_Annotation = function(
+  path_gtf = NULL,
+  col1 = 'gene_id',
+  col2 = 'gene_name'
+){
+  if(is.null(path_gtf) || !file.exists(path_gtf))
+      stop('GTF genes are not specified')
+
+    suppressPackageStartupMessages({
+        library(rtracklayer)
+        library(GenomicRanges)
+        library(dplyr)
+    })
+
+    if(class(path_gtf) == 'character'){
+        gtf = import.gff(path_gtf)
+    else{
+        gtf = path_gtf
+    }
+    gtf = subset(gtf, type == 'exon')
+    d = as.data.frame(values(gtf)) %>%
+      dplyr::select_(col1, col2) %>%
+      distinct()
+    return(d)
 }
