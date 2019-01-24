@@ -14,7 +14,6 @@ read_CellCycle = cacheFile(path_RDS) %@% function(
         library(GenomicRanges)
         library(dplyr)
     })
-
     gtf = RCAS::importGtf(path_gtf, keepStandardChr=FALSE)
     annot = unique(as.data.frame(values(gtf)[,c('gene_id','gene_name')])) %>%
         subset(!is.na(gene_id))%>%
@@ -28,5 +27,6 @@ read_CellCycle = cacheFile(path_RDS) %@% function(
 
     return(cc)
 }
+
 
 
