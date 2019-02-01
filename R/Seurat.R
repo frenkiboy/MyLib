@@ -256,3 +256,82 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
   
   return(object)
 }
+
+
+# ---------------------------------------------------------------------------- #
+# Should locate all cluster specific genes
+FindAllMarkersIntersection = function(
+  object,
+  genes.use = NULL,
+  logfc.threshold = 0.25,
+  test.use = "wilcox",
+  min.pct = 0.1,
+  min.diff.pct = -Inf,
+  print.bar = TRUE,
+  only.pos = FALSE,
+  max.cells.per.ident = Inf,
+  return.thresh = 1e-2,
+  do.print = FALSE,
+  random.seed = 1,
+  min.cells.gene = 3,
+  min.cells.group = 3,
+  latent.vars = NULL,
+  assay.type = "RNA",
+  ...
+) {
+  data.1 <- GetAssayData(object = object,assay.type = assay.type,slot = "data")
+  idents.all <- sort(x = unique(x = object@ident))
+
+  genes.all <- list()
+  for (i in 1:length(x = idents.all)) {
+
+    ident_a = idents.all[i]
+    set_reduced = setdiff(idents.all, ident_a)
+
+    genes.de <- list()
+    for(j in 1:length(set_reduced)){
+      ident_b = set_reduced[j]
+
+      genes.de[[j]] <- tryCatch(
+        {
+          FindMarkers(
+            object = object,
+            assay.type = assay.type,
+            ident.1 = ident_a,
+            ident.2 = ident_b,
+            genes.use = genes.use,
+            logfc.threshold = logfc.threshold,
+            test.use = test.use,
+            min.pct = min.pct,
+            min.diff.pct = min.diff.pct,
+            print.bar = print.bar,
+            min.cells.gene = min.cells.gene,
+            min.cells.group = min.cells.group,
+            latent.vars = latent.vars,
+            max.cells.per.ident = max.cells.per.ident,
+            ...
+          )
+        },
+        error = function(cond){
+          return(NULL)
+        }
+      )
+      if (do.print) {
+        message(paste("Calculating cluster", idents.all[i]))
+      }
+    }
+    genes.de = lapply(genes.de, function(x)subset(x, avg_logFC > 0))
+    genes.de = genes.de[sapply(genes.de, nrow) > 0]
+    gnams = Reduce(intersect, lapply(genes.de, function(x)rownames(x)))
+    if(!is.null(gnams)){
+      tab = genes.de[[1]]
+      tab$cluster = ident_a
+      tab = tab[order(tab$p_val, -tab$avg_logFC), ]
+      tab$gene_id = rownames(tab)
+      genes.all[[i]] = subset(tab, gene_id %in% gnams)
+    }
+
+  }
+  gde.all = do.call(rbind, genes.all)
+  return(gde.all)
+}
