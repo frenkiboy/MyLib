@@ -316,9 +316,9 @@ GRangesTodata.frame = function(g){
 list.bwfiles = function(path, suffix='bw'){
 	bw.files = list.files(path, pattern=paste0(suffix,'$'), recursive=TRUE, full.names=TRUE)
 	return(bw.files)
-	
+
 }
-			     
+
 # ---------------------------------------------------------------------------- #
 gzfile = function(infile){
 	outfile = paste(infile,'gz',sep='.')
@@ -328,7 +328,10 @@ gzfile = function(infile){
 	message('zipping done')
 	return(invisible(outfile))
 }
-			       
+
+# ---------------------------------------------------------------------------- #
+ncat = function(text)cat(paste0('\n',text),'\n')
+
 # ---------------------------------------------------------------------------- #
 # show method for the DataFrame as DataFrame object
 # suppressPackageStartupMessages(library(S4Vectors))
