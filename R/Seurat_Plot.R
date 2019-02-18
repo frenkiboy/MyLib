@@ -42,7 +42,7 @@ plotExpression = function(
   if(!any(gene_id %in% rownames(object@raw.data)))
     return(NULL)
 
-  g1 = object@dr[[tsne]]$cell.embeddings %>%
+  g1 = object@dr[[dr_type]]$cell.embeddings %>%
     as.data.frame() %>%
     magrittr::set_colnames(c('X1','X2')) %>%
     mutate(expr = slot(object, expr_type)[gene_id,]) %>%
@@ -62,7 +62,7 @@ plotExpression = function(
 # method when title not set
 plotMetaColumn = function(
     seu         = NULL,
-    column_name = 'scale_data',
+    column_name = 'nGene',
     title       = NULL,
     dr_type     = 'tsne'
 ){
@@ -79,7 +79,7 @@ plotMetaColumn = function(
   if(!any(column_name %in% colnames(seu@meta.data)))
     return(NULL)
 
-  g1 = seu@dr[[tsne]]$cell.embeddings %>%
+  g1 = seu@dr[[dr_type]]$cell.embeddings %>%
     as.data.frame() %>%
     magrittr::set_colnames(c('X1','X2')) %>%
     mutate(meta = seu@meta.data[[column_name]]) %>%
