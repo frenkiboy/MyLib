@@ -1,25 +1,22 @@
 # ---------------------------------------------------------------------------- #
 suppressPackageStartupMessages({
   library(Seurat)
-  library(ggplot)
+  library(ggplot2)
   library(dplyr)
 })
 
 # ---------------------------------------------------------------------------- #
-setGeneric("plotExpression", function(object) {
-  standardGeneric("plotExpression")
-})
 
-setMethod("plotExpression", signature("Seurat", "character","character","character","data.frame"),
-  function(
-    seu       = NULL,
+
+plotExpression = function(
+    object    = NULL,
     id        = NULL,
     id_type   = 'gene_id',
     expr_type = 'scale_data',
     dr_type   = 'tsne',
     annot
 ){
-  if(is.null(seu))
+  if(is.null(object))
     stop('Please provide a Seurat object')
 
   if(is.null(gene_id))
@@ -42,13 +39,13 @@ setMethod("plotExpression", signature("Seurat", "character","character","charact
   }
 
   # checks whether the gene id exists
-  if(!any(gene_id %in% rownames(seu@raw.data)))
+  if(!any(gene_id %in% rownames(object@raw.data)))
     return(NULL)
 
-  g1 = seu@dr[[tsne]]$cell.embeddings %>%
+  g1 = object@dr[[tsne]]$cell.embeddings %>%
     as.data.frame() %>%
     magrittr::set_colnames(c('X1','X2')) %>%
-    mutate(expr = slot(seu, expr_type)[gene_id,]) %>%
+    mutate(expr = slot(object, expr_type)[gene_id,]) %>%
     ggplot(data = .,aes(X1 , X2, color=expr)) %>%
       geom_point(size=.5) +
       scale_color_gradient2() +
@@ -58,32 +55,12 @@ setMethod("plotExpression", signature("Seurat", "character","character","charact
 
   return(g1)
 
-})
+}
 
 
 # ---------------------------------------------------------------------------- #
-setGeneric("plotMetaColumn", function(object) {
-  standardGeneric("plotMetaColumn")
-})
-
 # method when title not set
-setMethod("plotMetaColumn", signature("Seurat", "character",NULL,"character"),
-  function(
-    seu         = NULL,
-    column_name = 'scale_data',
-    title       = NULL,
-    dr_type     = 'tsne'
-){
-  plotMetaColumn(
-    seu,
-    column_name,
-    column_name,
-    dr_type
-    )
-}
-
-setMethod("plotMetaColumn", signature("Seurat", "character","character","character"),
-  function(
+plotMetaColumn = function(
     seu         = NULL,
     column_name = 'scale_data',
     title       = NULL,
@@ -108,11 +85,11 @@ setMethod("plotMetaColumn", signature("Seurat", "character","character","charact
     mutate(meta = seu@meta.data[[column_name]]) %>%
     ggplot(data = .,aes(X1 , X2, color=meta)) %>%
       geom_point(size=.5) +
-      scale_color_brewer() +
+      scale_color_brewer(palette='Set1') +
       ggtitle(column_name) +
       xlab(paste0(dr_type,'1')) +
       ylab(paste0(dr_type,'2'))
 
   return(g1)
 
-})
+}
