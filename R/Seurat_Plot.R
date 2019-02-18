@@ -42,11 +42,11 @@ plotExpression = function(
   if(!any(gene_id %in% rownames(object@raw.data)))
     return(NULL)
 
-  g1 = object@dr[[dr_type]]$cell.embeddings %>%
+  g1 = object@dr[[dr_type]]@cell.embeddings %>%
     as.data.frame() %>%
     magrittr::set_colnames(c('X1','X2')) %>%
     mutate(expr = slot(object, expr_type)[gene_id,]) %>%
-    ggplot(data = .,aes(X1 , X2, color=expr)) %>%
+    ggplot(data = .,aes(X1 , X2, color=expr)) +
       geom_point(size=.5) +
       scale_color_gradient2() +
       ggtitle(gene_name) +
@@ -79,11 +79,11 @@ plotMetaColumn = function(
   if(!any(column_name %in% colnames(seu@meta.data)))
     return(NULL)
 
-  g1 = seu@dr[[dr_type]]$cell.embeddings %>%
+  g1 = seu@dr[[dr_type]]@cell.embeddings %>%
     as.data.frame() %>%
     magrittr::set_colnames(c('X1','X2')) %>%
     mutate(meta = seu@meta.data[[column_name]]) %>%
-    ggplot(data = .,aes(X1 , X2, color=meta)) %>%
+    ggplot(data = ., aes(X1 , X2, color=meta)) +
       geom_point(size=.5) +
       scale_color_brewer(palette='Set1') +
       ggtitle(column_name) +
