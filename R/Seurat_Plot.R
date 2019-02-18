@@ -72,7 +72,7 @@ setMethod("plotMetaColumn", signature("Seurat", "character",NULL,"character"),
     seu         = NULL,
     column_name = 'scale_data',
     title       = NULL,
-    dr_type     = 'tsne',
+    dr_type     = 'tsne'
 ){
   plotMetaColumn(
     seu,
@@ -87,7 +87,7 @@ setMethod("plotMetaColumn", signature("Seurat", "character","character","charact
     seu         = NULL,
     column_name = 'scale_data',
     title       = NULL,
-    dr_type     = 'tsne',
+    dr_type     = 'tsne'
 ){
   if(is.null(seu))
     stop('Please provide a Seurat object')
