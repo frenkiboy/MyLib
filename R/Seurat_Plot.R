@@ -71,7 +71,7 @@ setMethod("plotMetaColumn", signature("Seurat", "character",NULL,"character"),
   function(
     seu         = NULL,
     column_name = 'scale_data',
-    title       = NULL
+    title       = NULL,
     dr_type     = 'tsne',
 ){
   plotMetaColumn(
@@ -86,7 +86,7 @@ setMethod("plotMetaColumn", signature("Seurat", "character","character","charact
   function(
     seu         = NULL,
     column_name = 'scale_data',
-    title       = NULL
+    title       = NULL,
     dr_type     = 'tsne',
 ){
   if(is.null(seu))
