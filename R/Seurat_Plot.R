@@ -12,7 +12,7 @@ plotExpression = function(
     object    = NULL,
     id        = NULL,
     id_type   = 'gene_id',
-    expr_type = 'scale_data',
+    expr_type = 'scale.data',
     dr_type   = 'tsne',
     annot
 ){
