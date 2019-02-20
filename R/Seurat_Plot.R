@@ -19,8 +19,8 @@ plotExpression = function(
   if(is.null(object))
     stop('Please provide a Seurat object')
 
-  if(is.null(gene_id))
-    stop('Please provide a gene_id')
+  if(is.null(id))
+    stop('Please provide a gene id')
 
   if(is.null(annot))
     stop('Please provide an annotation file')
