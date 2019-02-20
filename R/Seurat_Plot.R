@@ -73,9 +73,6 @@ plotMetaColumn = function(
   if(is.null(column_name))
     stop('Please provide a gene_id')
 
-  if(is.null(annot))
-    stop('Please provide an annotation file')
-
   # checks whether the gene id exists
   if(!any(column_name %in% colnames(seu@meta.data)))
     stop('Meta column does not exist')
