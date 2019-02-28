@@ -259,7 +259,7 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 
 # ---------------------------------------------------------------------------- #
 SeurateToSingleCellExperiment = function(
-  seu
+  seu,
   annot
 ){
   rowData = S4Vectors::DataFrame(annot[match(rownames(seu@data), annot$gene_id),])
