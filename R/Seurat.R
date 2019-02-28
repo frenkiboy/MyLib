@@ -262,7 +262,9 @@ SeurateToSingleCellExperiment = function(
   seu,
   annot
 ){
-  rowData = S4Vectors::DataFrame(annot[match(rownames(seu@data), annot$gene_id),])
+  rowData = S4Vectors::DataFrame(
+    gene_id   = rownames(seu@data),
+    gene_name = annot[match(rownames(seu@data), annot$gene_id),]$gene_name)
   rownames(rowData) = rowData$gene_id
   colData = S4Vectors::DataFrame(meta)
   counts  = seu@raw.data
