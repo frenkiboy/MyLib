@@ -294,7 +294,7 @@ SeurateToSingleCellExperiment = function(
       name = "cell.embeddings"
     )
   }
-  return(seu)
+  return(sce)
 }
 
 
