@@ -289,7 +289,7 @@ SeurateToSingleCellExperiment = function(
     assays = list(
       counts    = counts,
       logcounts = logcounts,
-      scaledata = scale_data
+      scaleData = scale_data
     ))
 
 
