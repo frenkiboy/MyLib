@@ -273,13 +273,13 @@ SeurateToSingleCellExperiment = function(
         gene_name = annot[match(gene_subset, annot$gene_id),]$gene_name)
      rownames(rowData) = rowData$gene_id
      colData = S4Vectors::DataFrame(seu@meta.data)
-     counts  = seu@raw.data
+     counts  = seu@raw.data[gene_subset, ]
      colnames(counts) = as.character(colnames(counts) )
      rownames(counts) = as.character(rownames(counts) )
-     logcounts = seu@data
+     logcounts = seu@data[gene_subset, ]
      colnames(logcounts)   = as.character(colnames(logcounts) )
      rownames(logcounts)   = as.character(rownames(logcounts) )
-     scale_data = seu@scale.data
+     scale_data = seu@scale.data[gene_subset, ]
      colnames(scale_data)   = as.character(colnames(scale_data) )
      rownames(scale_data)   = as.character(rownames(scale_data) )
 
