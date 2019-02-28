@@ -258,6 +258,7 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 }
 
 # ---------------------------------------------------------------------------- #
+# converts the seurat to single cell experiment
 SeurateToSingleCellExperiment = function(
   seu,
   annot
@@ -266,7 +267,7 @@ SeurateToSingleCellExperiment = function(
     gene_id   = rownames(seu@data),
     gene_name = annot[match(rownames(seu@data), annot$gene_id),]$gene_name)
   rownames(rowData) = rowData$gene_id
-  colData = S4Vectors::DataFrame(meta)
+  colData = S4Vectors::DataFrame(seu@meta.data)
   counts  = seu@raw.data
   colnames(counts) = as.character(colnames(counts) )
   rownames(counts) = as.character(rownames(counts) )
