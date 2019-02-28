@@ -261,22 +261,27 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 # converts the seurat to single cell experiment
 SeurateToSingleCellExperiment = function(
   seu,
-  annot
+  annot,
+  gene_subset = NULL
 ){
-  rowData = S4Vectors::DataFrame(
-    gene_id   = rownames(seu@data),
-    gene_name = annot[match(rownames(seu@data), annot$gene_id),]$gene_name)
-  rownames(rowData) = rowData$gene_id
-  colData = S4Vectors::DataFrame(seu@meta.data)
-  counts  = seu@raw.data
-  colnames(counts) = as.character(colnames(counts) )
-  rownames(counts) = as.character(rownames(counts) )
-  logcounts = seu@data
-  colnames(logcounts)   = as.character(colnames(logcounts) )
-  rownames(logcounts)   = as.character(rownames(logcounts) )
-  scale_data = seu@scale.data
-  colnames(scale_data)   = as.character(colnames(scale_data) )
-  rownames(scale_data)   = as.character(rownames(scale_data) )
+
+    if(is.null(gene_subset))
+        gene_subset = rownames(seu@data)
+
+    rowData = S4Vectors::DataFrame(
+        gene_id   = gene_subset,
+        gene_name = annot[match(gene_subset, annot$gene_id),]$gene_name)
+     rownames(rowData) = rowData$gene_id
+     colData = S4Vectors::DataFrame(seu@meta.data)
+     counts  = seu@raw.data
+     colnames(counts) = as.character(colnames(counts) )
+     rownames(counts) = as.character(rownames(counts) )
+     logcounts = seu@data
+     colnames(logcounts)   = as.character(colnames(logcounts) )
+     rownames(logcounts)   = as.character(rownames(logcounts) )
+     scale_data = seu@scale.data
+     colnames(scale_data)   = as.character(colnames(scale_data) )
+     rownames(scale_data)   = as.character(rownames(scale_data) )
 
   sce =  SingleCellExperiment::SingleCellExperiment(
     rowData = rowData,
