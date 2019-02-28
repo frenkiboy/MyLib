@@ -274,13 +274,17 @@ SeurateToSingleCellExperiment = function(
   logcounts = seu@data
   colnames(logcounts)   = as.character(colnames(logcounts) )
   rownames(logcounts)   = as.character(rownames(logcounts) )
+  scale_data = seu@scale.data
+  colnames(scale_data)   = as.character(colnames(scale_data) )
+  rownames(scale_data)   = as.character(rownames(scale_data) )
 
   sce =  SingleCellExperiment::SingleCellExperiment(
     rowData = rowData,
     colData = colData,
     assays = list(
       counts    = counts,
-      logcounts = logcounts
+      logcounts = logcounts,
+      scaledata = scale_data
     ))
 
 
