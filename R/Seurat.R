@@ -273,7 +273,7 @@ SeurateToSingleCellExperiment = function(
   rownames(counts) = as.character(rownames(counts) )
   logcounts = seu@data
   colnames(logcounts)   = as.character(colnames(logcounts) )
-  rownames(logcounts)   = as.character(rownames(colnames(logcounts) ))
+  rownames(logcounts)   = as.character(rownames(logcounts) )
 
   sce =  SingleCellExperiment::SingleCellExperiment(
     rowData = rowData,
