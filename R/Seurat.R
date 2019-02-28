@@ -20,16 +20,16 @@ Process_Seurat = function(
   ){
   source(file.path(lib.path, 'Seurat.R'))
   library(Seurat)
-  
+
   # -------------------------------------------------------------------------- #
   if(class(rownames(seu@raw.data)) == 'array'){
     rownames(seu@raw.data) = as.character(rownames(seu@raw.data))
-  }  
+  }
 
   if(class(rownames(seu@data)) == 'array'){
     rownames(seu@data) = as.character(rownames(seu@data))
-  }  
-  
+  }
+
   # -------------------------------------------------------------------------- #
   message('Normalize ...')
   if(scnorm == FALSE){
@@ -38,7 +38,7 @@ Process_Seurat = function(
     library(SCnorm)
     if(is.null(scnorm_cond))
       scnorm_cond = rep(1, nrow(seu@meta.data))
-  
+
     mat = as.matrix(seu@raw.data)
     colnames(mat) = as.character(1:ncol(mat))
     names(scnorm_cond) = colnames(mat)
@@ -130,10 +130,10 @@ Subset_Seurat = function(
   seu@cell.names = rownames(seu@meta.data)
 
   seu@raw.data = seu@raw.data[,match(rownames(seu@meta.data), colnames(seu@raw.data))]
-  
+
   if(!is.null(gind) && all(gind %in% rownames(seu@raw.data)))
     seu@raw.data = seu@raw.data[gind,]
-  
+
   seu.sub = CreateSeuratObject(
     raw.data  = seu@raw.data,
     meta.data = seu@meta.data)
@@ -253,8 +253,41 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
   rownames(x = cc.scores) <- cc.scores$rownames
   cc.scores <- cc.scores[, c("Paternal.Score", "Maternal.Score","Imprint")]
   object <- AddMetaData(object = object, metadata = cc.scores)
-  
+
   return(object)
+}
+
+# ---------------------------------------------------------------------------- #
+SeurateToSingleCellExperiment = function(
+  seu
+  annot
+){
+  rowData = S4Vectors::DataFrame(annot[match(rownames(seu@data), annot$gene_id),])
+  rownames(rowData) = rowData$gene_id
+  colData = S4Vectors::DataFrame(meta)
+  counts  = seu@raw.data
+  colnames(counts) = as.character(colnames(counts) )
+  rownames(counts) = as.character(rownames(counts) )
+  logcounts = seu@data
+  colnames(logcounts)   = as.character(colnames(logcounts) )
+  rownames(logcounts)   = as.character(rownames(colnames(logcounts) ))
+
+  sce =  SingleCellExperiment::SingleCellExperiment(
+    rowData = rowData,
+    colData = colData,
+    assays = list(
+      counts    = counts,
+      logcounts = logcounts
+    ))
+
+
+  for (dr in names(seu@dr)) {
+    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = slot(
+      object = slot(object = seu, name = "dr")[[dr]],
+      name = "cell.embeddings"
+    )
+  }
+  return(seu)
 }
 
 
