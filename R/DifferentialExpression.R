@@ -53,7 +53,7 @@ diffMark = function(res, lfc, pval, log.col=NULL, pval.col=NULL, nomark='No'){
 	return(diff)
 }
 
-getResults = function(des, contrasts, lfc, pval, independentFiltering=FALSE){
+getResults = function(des, contrasts, lfc, pval, independentFiltering=FALSE, pval_type='padj'){
 
     library(data.table)
     lres = list()
@@ -62,7 +62,8 @@ getResults = function(des, contrasts, lfc, pval, independentFiltering=FALSE){
         name = names(contrasts)[i]
         print(name)
         res = results(des, contrasts[[name]], independentFiltering=independentFiltering)
-        res = res[,c('log2FoldChange','padj')]
+        res = res[,c('log2FoldChange',pval_type)]
+	colnames(res)[2] = 'padj'
         res$diff = diffMark(res, lfc, pval)
         colnames(res) = paste(colnames(res),name, sep='.')
         if(is.null(rownames(res)))
