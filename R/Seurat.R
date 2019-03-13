@@ -258,6 +258,40 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 }
 
 # ---------------------------------------------------------------------------- #
+#' Seurat_Meta_Counts
+#'
+#' @param seu Seurat object
+#' @param col Meta data column
+#' @param type type of the matrix (data, raw.data)
+#' @param norm whether to normalize the matrix
+Seurat_Meta_Counts = function(
+    seu,
+    col,
+    data.type = 'raw.data',
+    norm = TRUE
+){
+    if(class(seu) != 'Seurat')
+        stop('seu is not a Seurat object')
+
+    if(!any(col %in% colnames(seu@meta.data)))
+        stop('column is not in the meta.data')
+
+    mat = slot(seu, data.type)
+    cnams = unique(seu@meta.data[[col]])
+    lmat = lapply(setNames(cnams, cnams), function(x){
+        message(x)
+        Matrix::rowSums(mat[,seu@meta.data[[col]]==x, drop=FALSE])
+    })
+    dmat = data.frame(lmat)
+    if(norm)
+        dmat = t(t(dmat)*(1e5/colSums(dmat)))
+    return(dmat)
+
+
+}
+
+
+# ---------------------------------------------------------------------------- #
 # converts the seurat to single cell experiment
 SeurateToSingleCellExperiment = function(
   seu,
