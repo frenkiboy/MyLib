@@ -59,7 +59,7 @@ Process_Seurat = function(
     }
 
   message('Variable genes ...')
-    seu = FindVariableGenes(object = seu, do.plot = FALSE)
+    seu = FindVariableFeatures(object = seu, do.plot = FALSE)
 
   message('PCA ...')
     seu = RunPCA(seu, do.print=FALSE)
