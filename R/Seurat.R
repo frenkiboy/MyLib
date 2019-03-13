@@ -270,7 +270,7 @@ Seurat_Meta_Counts = function(
     col,
     data.type = 'raw.data',
     norm = TRUE,
-    log  = TRUE,
+    log  = TRUE
 ){
     if(class(seu) != 'Seurat')
         stop('seu is not a Seurat object')
