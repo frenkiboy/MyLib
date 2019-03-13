@@ -264,11 +264,13 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 #' @param col Meta data column
 #' @param type type of the matrix (data, raw.data)
 #' @param norm whether to normalize the matrix
+#' @param log boolean, whether to log2(x+1)
 Seurat_Meta_Counts = function(
     seu,
     col,
     data.type = 'raw.data',
-    norm = TRUE
+    norm = TRUE,
+    log  = TRUE,
 ){
     if(class(seu) != 'Seurat')
         stop('seu is not a Seurat object')
@@ -285,6 +287,9 @@ Seurat_Meta_Counts = function(
     dmat = data.frame(lmat)
     if(norm)
         dmat = t(t(dmat)*(1e5/colSums(dmat)))
+
+    if(log)
+        dmat = log2(dmat+1)
     return(dmat)
 
 
