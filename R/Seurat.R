@@ -333,7 +333,7 @@ SeurateToSingleCellExperiment = function(
 
 
   for (dr in names(seu@dr)) {
-    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = Embeddings(seu, dr))
+    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = Embeddings(seu, dr)
   }
   return(sce)
 }
