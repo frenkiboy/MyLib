@@ -272,7 +272,7 @@ Seurat_Meta_Counts = function(
     norm = TRUE,
     log  = TRUE
 ){
-    if(class(seu) != 'seurat')
+    if(class(seu) != 'Seurat')
         stop('seu is not a Seurat object')
 
     if(!any(col %in% colnames(seu@meta.data)))
@@ -312,13 +312,13 @@ SeurateToSingleCellExperiment = function(
         gene_name = annot[match(gene_subset, annot$gene_id),]$gene_name)
      rownames(rowData) = rowData$gene_id
      colData = S4Vectors::DataFrame(seu@meta.data)
-     counts  = seu@raw.data[gene_subset, ]
+     counts  = GetAssayData(seu,'counts')[gene_subset, ]
      colnames(counts) = as.character(colnames(counts) )
      rownames(counts) = as.character(rownames(counts) )
-     logcounts = seu@data[gene_subset, ]
+     logcounts = counts    = GetAssayData(seu,'data')[gene_subset, ]
      colnames(logcounts)   = as.character(colnames(logcounts) )
      rownames(logcounts)   = as.character(rownames(logcounts) )
-     scale_data = seu@scale.data[gene_subset, ]
+     scale_data = GetAssayData(seu,'scale.data')[gene_subset, ]
      colnames(scale_data)   = as.character(colnames(scale_data) )
      rownames(scale_data)   = as.character(rownames(scale_data) )
 
@@ -333,10 +333,7 @@ SeurateToSingleCellExperiment = function(
 
 
   for (dr in names(seu@dr)) {
-    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = slot(
-      object = slot(object = seu, name = "dr")[[dr]],
-      name = "cell.embeddings"
-    )
+    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = Embeddings(seu, dr))
   }
   return(sce)
 }
