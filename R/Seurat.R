@@ -268,7 +268,7 @@ Imprint_Scoring = function(object, paternal.genes, maternal.genes)
 Seurat_Meta_Counts = function(
     seu,
     col,
-    data.type = 'raw.data',
+    data.type = 'counts',
     norm = TRUE,
     log  = TRUE
 ){
