@@ -278,7 +278,7 @@ Seurat_Meta_Counts = function(
     if(!any(col %in% colnames(seu@meta.data)))
         stop('column is not in the meta.data')
 
-    mat = slot(seu, data.type)
+    mat = GetAssayData(seu, data.type)
     cnams = unique(seu@meta.data[[col]])
     lmat = lapply(setNames(cnams, cnams), function(x){
         message(x)
