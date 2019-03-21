@@ -110,32 +110,52 @@ Check_Seurat = function(
 Subset_Seurat = function(
   seu   = NULL,
   cind  = TRUE,
-  gind  = NULL
+  gind  = TRUE
 ){
   if(is.null(seu))
     stop('Seurat object is not supplied')
 
-  if(any(FALSE %in% cind))
-      cind = cind[cind]
+  # -------------------------------------------------------------------------- #
+  if(is.logical(cind)){
 
-  if(any(FALSE %in% gind))
-      gind = gind[gind]
+    if(length(cind) == i){
+        cind = rownames(seu@meta.data)
 
-  if(is.null(names(cind)))
-    stop('cind must be a named vector')
+    }else{
+        if(is.null(names(cind)))
+            stop('cind must be a named vector')
 
-  if(is.null(names(gind)))
-    stop('gind must be a named vector')
+        cind = names(cind[cind])
+    }
+  }
+   if(all(!names(cind) %in% rownames(seu@meta.data)))
+       stop('cind contains unkown cell types')
 
-  if(all(!names(cind) %in% rownames(seu@meta.data)))
-    stop('cind contains unkown cell types')
+  # -------------------------------------------------------------------------- #
+  if(is.logical(gind)){
+
+      if(length(gind) == i){
+          gind = rownames(GetAssayData(seu,'RNA','counts'))
+
+      }else{
+          if(is.null(names(gind)))
+              stop('gind must be a named vector')
+
+          gind = names(gind[gind])
+      }
+  }
+  if(all(!names(gind) %in% rownames(GetAssayData(seu,'RNA','counts'))))
+    stop('gind contains unkown genes')
+
+  # -------------------------------------------------------------------------- #
+  gind = gind %in% rownames(seu@meta.data)
+  cind = cind %in% rownames(GetAssayData(seu,'RNA','counts'))
 
   meta.data = seu@meta.data
-  meta.data = meta.data[rownames(meta.data) %in% names(cind),]
+  meta.data = meta.data[cind,]
 
   raw.data = GetAssayData(seu,assay='RNA','counts')
-  if(!is.null(gind) && all(gind %in% rownames(seu@raw.data)))
-      raw.data = raw.data[rownames(raw.data) %in% names(gind),colnames(raw.data) %in% names(cind)]
+  raw.data = raw.data[gind, cind]
 
   seu.sub = CreateSeuratObject(
       counts = raw.data,
