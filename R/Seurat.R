@@ -128,7 +128,7 @@ Subset_Seurat = function(
         cind = names(cind[cind])
     }
   }
-   if(all(!names(cind) %in% rownames(seu@meta.data)))
+  if(!all(cind %in% rownames(seu@meta.data)))
        stop('cind contains unkown cell types')
 
   # -------------------------------------------------------------------------- #
@@ -144,7 +144,7 @@ Subset_Seurat = function(
           gind = names(gind[gind])
       }
   }
-  if(all(!names(gind) %in% rownames(GetAssayData(seu,'RNA','counts'))))
+  if(!all(gind %in% rownames(GetAssayData(seu,'RNA','counts'))))
     stop('gind contains unkown genes')
 
   # -------------------------------------------------------------------------- #
