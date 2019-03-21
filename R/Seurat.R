@@ -135,7 +135,7 @@ Subset_Seurat = function(
   if(is.logical(gind)){
 
       if(length(gind) == 1){
-          gind = rownames(GetAssayData(seu,'RNA','counts'))
+          gind = rownames(GetAssayData(seu,slot='counts'))
 
       }else{
           if(is.null(names(gind)))
@@ -144,17 +144,17 @@ Subset_Seurat = function(
           gind = names(gind[gind])
       }
   }
-  if(!all(gind %in% rownames(GetAssayData(seu,'RNA','counts'))))
+  if(!all(gind %in% rownames(GetAssayData(seu,slot='counts'))))
     stop('gind contains unkown genes')
 
   # -------------------------------------------------------------------------- #
   gind = gind %in% rownames(seu@meta.data)
-  cind = cind %in% rownames(GetAssayData(seu,'RNA','counts'))
+  cind = cind %in% rownames(GetAssayData(seu,slot='counts'))
 
   meta.data = seu@meta.data
   meta.data = meta.data[cind,]
 
-  raw.data = GetAssayData(seu,assay='RNA','counts')
+  raw.data = GetAssayData(seu,slot='counts')
   raw.data = raw.data[gind, cind]
 
   seu.sub = CreateSeuratObject(
