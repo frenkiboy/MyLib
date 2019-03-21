@@ -118,8 +118,14 @@ Subset_Seurat = function(
   if(any(FALSE %in% cind))
       cind = cind[cind]
 
+  if(any(FALSE %in% gind))
+      gind = gind[gind]
+
   if(is.null(names(cind)))
     stop('cind must be a named vector')
+
+  if(is.null(names(gind)))
+    stop('gind must be a named vector')
 
   if(all(!names(cind) %in% rownames(seu@meta.data)))
     stop('cind contains unkown cell types')
