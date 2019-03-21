@@ -118,7 +118,7 @@ Subset_Seurat = function(
   # -------------------------------------------------------------------------- #
   if(is.logical(cind)){
 
-    if(length(cind) == i){
+    if(length(cind) == 1){
         cind = rownames(seu@meta.data)
 
     }else{
@@ -134,7 +134,7 @@ Subset_Seurat = function(
   # -------------------------------------------------------------------------- #
   if(is.logical(gind)){
 
-      if(length(gind) == i){
+      if(length(gind) == 1){
           gind = rownames(GetAssayData(seu,'RNA','counts'))
 
       }else{
