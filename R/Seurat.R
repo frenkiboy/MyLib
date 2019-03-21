@@ -108,35 +108,33 @@ Check_Seurat = function(
 #' @param ind a named vector containing the indices of which cells to keep
 #'
 Subset_Seurat = function(
-  seu  = NULL,
-  ind  = TRUE,
-  gind = NULL
+  seu   = NULL,
+  cind  = TRUE,
+  gind  = NULL
 ){
   if(is.null(seu))
     stop('Seurat object is not supplied')
 
-  if(any(FALSE %in% ind))
-    ind = ind[ind]
+  if(any(FALSE %in% cind))
+      cind = cind[cind]
 
-  if(is.null(names(ind)))
-    stop('ind must be a named vector')
+  if(is.null(names(cind)))
+    stop('cind must be a named vector')
 
-  if(any(!names(ind) %in% rownames(seu@meta.data)))
-    stop('ind contains unkown cell types')
+  if(all(!names(cind) %in% rownames(seu@meta.data)))
+    stop('cind contains unkown cell types')
 
   meta.data = seu@meta.data
-  meta.data = meta.data[rownames(meta.data) %in% names(ind),]
-  seu@meta.data  = meta.data
-  seu@cell.names = rownames(seu@meta.data)
+  meta.data = meta.data[rownames(meta.data) %in% names(cind),]
 
-  seu@raw.data = seu@raw.data[,match(rownames(seu@meta.data), colnames(seu@raw.data))]
-
+  raw.data = GetAssayData(seu,assay='RNA','counts')
   if(!is.null(gind) && all(gind %in% rownames(seu@raw.data)))
-    seu@raw.data = seu@raw.data[gind,]
+      raw.data = raw.data[rownames(raw.data) %in% names(gind),colnames(raw.data) %in% names(cind)]
 
   seu.sub = CreateSeuratObject(
-    raw.data  = seu@raw.data,
-    meta.data = seu@meta.data)
+      counts = raw.data,
+      meta   = meta.data
+  )
 
   return(seu.sub)
 }
