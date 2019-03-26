@@ -85,6 +85,7 @@ Run_Seurat_scVI = cacheFile(path_RDS) %@% function(
   n_batches           = 0,
   subsets_clustering  = FALSE,
   batch_indices       = NULL,
+  winsor              = 2,
   variable_selection_method = 'mean.var.plot'
 ){
   suppressPackageStartupMessages({
@@ -109,7 +110,7 @@ Run_Seurat_scVI = cacheFile(path_RDS) %@% function(
 
   message('Scaling imputed ...')
   quant  =  quantile(as.matrix(imp), seq(0,1,0.01))
-  winsor =  head(tail(quant,2),1)
+  winsor =  head(tail(quant,winsor),1)
   imp[imp > winsor] = winsor
   seu[['VAE']] = CreateAssayObject(data = imp)
   DefaultAssay(seu) = 'VAE'
