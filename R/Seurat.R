@@ -148,9 +148,8 @@ Subset_Seurat = function(
     stop('gind contains unkown genes')
 
   # -------------------------------------------------------------------------- #
-    browser()
-  gind = rownames(seu@meta.data) %in% gind
-  cind = rownames(GetAssayData(seu,slot='counts')) %in% cind
+  cind = rownames(seu@meta.data) %in% cind
+  gind = rownames(GetAssayData(seu,slot='counts')) %in% gind
 
   meta.data = seu@meta.data
   meta.data = meta.data[cind,]
