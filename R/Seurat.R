@@ -20,12 +20,12 @@ Process_Seurat = function(
   library(Seurat)
 
   # -------------------------------------------------------------------------- #
-  if(class(rownames(seu@raw.data)) == 'array'){
-    rownames(seu@raw.data) = as.character(rownames(seu@raw.data))
+  if(class(colnames(seu)) == 'array'){
+      colnames(seu) = as.character(colnames(seu))
   }
 
-  if(class(rownames(seu@data)) == 'array'){
-    rownames(seu@data) = as.character(rownames(seu@data))
+  if(class(rownames(seu)) == 'array'){
+    rownames(seu) = as.character(rownames(seu))
   }
 
   # -------------------------------------------------------------------------- #
