@@ -12,11 +12,9 @@ Process_Seurat = function(
   seu,
   regress        = NULL,
   tsne           = TRUE,
-  pcs_for_tsne   = 1:9,
-  genes_for_tsne = NULL,
-  scnorm         = FALSE,
-  scnorm_cond    = NULL,
-  scnorm_ncores  = 8
+  pcs_for_tsne   = 1:20,
+  genes_for_tsne = NULL
+
   ){
   source(file.path(lib.path, 'Seurat.R'))
   library(Seurat)
@@ -32,37 +30,23 @@ Process_Seurat = function(
 
   # -------------------------------------------------------------------------- #
   message('Normalize ...')
-  if(scnorm == FALSE){
-    seu = NormalizeData(seu)
-  }else{
-    library(SCnorm)
-    if(is.null(scnorm_cond))
-      scnorm_cond = rep(1, nrow(seu@meta.data))
-
-    mat = as.matrix(seu@raw.data)
-    colnames(mat) = as.character(1:ncol(mat))
-    names(scnorm_cond) = colnames(mat)
-    sce = SCnorm(Data = mat, Conditions=scnorm_cond, NCores=scnorm_ncores)
-    ass = assays(a)$normcounts
-    colnames(ass) = colnames(seu@raw.data)
-    seu@data = ass
-  }
+    seu = NormalizeData(seu, verbose = FALSE)
 
     if(is.null(regress)){
       message('Scale ...')
-      seu = ScaleData(object = seu)
+      seu = ScaleData(object = seu, verbose=FALSE)
     }
 
     if(!is.null(regress) && all(is.character(regress)) && all(regress %in% colnames(seu@meta.data))){
       message('Scale Regress...')
-      seu = ScaleData(object = seu, vars.to.regress = regress)
+      seu = ScaleData(object = seu, vars.to.regress = regress, verbose=FALSE)
     }
 
   message('Variable genes ...')
-    seu = FindVariableFeatures(object = seu, do.plot = FALSE)
+    seu = FindVariableFeatures(object = seu, do.plot = FALSE, verbose=FALSE)
 
   message('PCA ...')
-    seu = RunPCA(seu, do.print=FALSE)
+    seu = RunPCA(seu, do.print=FALSE, verbose=FALSE)
 
   if(tsne){
     message('TSNE ...')
@@ -72,10 +56,7 @@ Process_Seurat = function(
       seu = RunTSNE(object = seu, genes.use = genes_for_tsne, do.fast = TRUE, check_duplicates = FALSE)
     }
   }
-  Check_Seurat(seu)
-
   return(seu)
-
 }
 
 # ---------------------------------------------------------------------------- #
