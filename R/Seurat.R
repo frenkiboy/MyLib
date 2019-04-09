@@ -21,7 +21,7 @@ Process_Seurat = function(
 
   # -------------------------------------------------------------------------- #
   if(class(colnames(seu)) == 'array'){
-      colnames(seu) = as.character(colnames(seu))
+    colnames(seu) = as.character(colnames(seu))
   }
 
   if(class(rownames(seu)) == 'array'){
@@ -303,45 +303,50 @@ Seurat_Meta_Counts = function(
 
 # ---------------------------------------------------------------------------- #
 # converts the seurat to single cell experiment
-# SeurateToSingleCellExperiment = function(
-#   seu,
-#   annot,
-#   gene_subset = NULL
-# ){
-#
-#     if(is.null(gene_subset))
-#         gene_subset = rownames(seu@data)
-#
-#     rowData = S4Vectors::DataFrame(
-#         gene_id   = gene_subset,
-#         gene_name = annot[match(gene_subset, annot$gene_id),]$gene_name)
-#      rownames(rowData) = rowData$gene_id
-#      colData = S4Vectors::DataFrame(seu@meta.data)
-#      counts  = GetAssayData(seu,'counts')[gene_subset, ]
-#      colnames(counts) = as.character(colnames(counts) )
-#      rownames(counts) = as.character(rownames(counts) )
-#      logcounts = counts    = GetAssayData(seu,'data')[gene_subset, ]
-#      colnames(logcounts)   = as.character(colnames(logcounts) )
-#      rownames(logcounts)   = as.character(rownames(logcounts) )
-#      scale_data = GetAssayData(seu,'scale.data')[gene_subset, ]
-#      colnames(scale_data)   = as.character(colnames(scale_data) )
-#      rownames(scale_data)   = as.character(rownames(scale_data) )
-#
-#   sce =  SingleCellExperiment::SingleCellExperiment(
-#     rowData = rowData,
-#     colData = colData,
-#     assays = list(
-#       counts    = counts,
-#       logcounts = logcounts,
-#       scaleData = scale_data
-#     ))
-#
-#
-#   for (dr in names(seu@dr)) {
-#     SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = Embeddings(seu, dr)
-#   }
-#   return(sce)
-# }
+SeurateToSingleCellExperiment = function(
+  seu,
+  annot = NULL,
+  gene_subset = NULL
+){
+    if(is.null(annot))
+        stop('please supply the annot data.frame')
+
+    if(is.null(gene_subset))
+        gene_subset = rownames(seu)
+
+    rowData = S4Vectors::DataFrame(
+        gene_id   = gene_subset,
+        gene_name = annot[match(gene_subset, annot$gene_id),]$gene_name)
+     rownames(rowData) = rowData$gene_id
+     colData = S4Vectors::DataFrame(seu@meta.data)
+
+     counts  = GetAssayData(seu,'counts')[gene_subset, ]
+     colnames(counts) = as.character(colnames(counts) )
+     rownames(counts) = as.character(rownames(counts) )
+
+     logcounts = counts    = GetAssayData(seu,'data')[gene_subset, ]
+     colnames(logcounts)   = as.character(colnames(logcounts) )
+     rownames(logcounts)   = as.character(rownames(logcounts) )
+
+     scale_data = GetAssayData(seu,'scale.data')[gene_subset, ]
+     colnames(scale_data)   = as.character(colnames(scale_data) )
+     rownames(scale_data)   = as.character(rownames(scale_data) )
+
+  sce =  SingleCellExperiment::SingleCellExperiment(
+    rowData = rowData,
+    colData = colData,
+    assays = list(
+      counts    = counts,
+      logcounts = logcounts,
+      scaleData = scale_data
+    ))
+
+  cnams = c('pca','tsne','umap')
+  for (dr in intersect(cnams, names(seu))) {
+    SingleCellExperiment::reducedDim(sce, toupper(x = dr)) = Embeddings(seu, dr)
+  }
+  return(sce)
+}
 
 
 # ---------------------------------------------------------------------------- #
