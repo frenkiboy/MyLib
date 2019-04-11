@@ -1,13 +1,18 @@
 # ---------------------------------------------------------------------------- #
 # run scVI imputation on a seurat data set
 run_scVI = function(
-  seu         = NULL,
-  conda       = '/home/vfranke/bin/Software/miniconda3/bin/conda',
-  n_epochs    = 100,
-  lr          = 1e-3,
-  n_batches   = 0,
+  seu           = NULL,
+  conda         = '/home/vfranke/bin/Software/miniconda3/bin/conda',
+  n_epochs      = 100,
+  lr            = 1e-3,
+  n_batches     = 0,
   batch_indices = NULL,
-  use_cuda      = FALSE
+  use_cuda      = FALSE,
+  n_latent      = 20,
+  n_layers      = 2,
+  n_hidden      = 128,
+  dispersion    = 'gene',
+  reconstruction_loss = 'zinb'
 ){
 
   if(is.null(seu) || class(seu) != 'Seurat')
@@ -49,7 +54,11 @@ run_scVI = function(
      vae = scvi$models$VAE(
                n_input  = as.integer(nrow(cnts)),
                n_batch  = as.integer(n_batches),
-               n_latent = as.integer(20))
+               n_latent = as.integer(n_latent),
+               n_hidden = as.integer(n_hidden),
+               n_layers = as.integer(n_layers),
+               dispersion = dispersion,
+               reconstruction_loss = reconstruction_loss)
 
      trainer = scvi$inference$UnsupervisedTrainer(
        vae,
@@ -77,16 +86,23 @@ run_scVI = function(
 # runs the Seurat analysis with scVIS imputed datasets
 # This function should be used within other functions which
 # provide the corresponding seurat input
+# dispersion: gene, gene-batch, gene-lael, gene-cell
 Run_Seurat_scVI = cacheFile(path_RDS) %@% function(
   seu,
   algorithm           = 2,
   k.param             = 15,
-  dims.use            = 30,
+  dims.use            = 10,
   n_batches           = 0,
+  n_latent            = 20,
   subsets_clustering  = FALSE,
   batch_indices       = NULL,
   winsor              = 2,
-  variable_selection_method = 'mean.var.plot'
+  n_layers            = 2,
+  n_hidden            = 128,
+  variable_selection_method = 'vst',
+  dispersion          = 'gene',
+  reconstruction_loss = 'zinb',
+  nfeatures           = 1000
 ){
   suppressPackageStartupMessages({
     library(Seurat)
@@ -101,31 +117,42 @@ Run_Seurat_scVI = cacheFile(path_RDS) %@% function(
   latent = run_scVI(
     seu,
     batch_indices = batch_indices,
-    n_batches     = n_batches
+    n_batch       = n_batches,
+    n_latent      = n_latent,
+    n_layers      = n_layers,
+    n_hidden      = n_hidden,
+    dispersion    = 'gene',
+    reconstruction_loss = 'zinb'
   )
 
   lat = latent$latent
   imp = latent$imputed
   seu@meta.data = cbind(seu@meta.data, lat)
-
   message('Scaling imputed ...')
   quant  =  quantile(as.matrix(imp), seq(0,1,0.01))
   winsor =  head(tail(quant,winsor),1)
   imp[imp > winsor] = winsor
-  seu[['VAE']] = CreateAssayObject(data = imp)
-  DefaultAssay(seu) = 'VAE'
-  seu = ScaleData(object = seu)
-  seu = FindVariableFeatures(seu, do.plot=FALSE, selection.method = variable_selection_method)
+  colnames(imp) = as.character(colnames(imp))
+  rownames(imp) = as.character(rownames(imp))
+  seu[['scvi']] = CreateAssayObject(data = imp)
+  DefaultAssay(seu) = 'scvi'
+  seu = ScaleData(object = seu, assay='scvi')
+  seu = FindVariableFeatures(
+      seu,
+      do.plot=FALSE,
+      selection.method = variable_selection_method,
+      nfeatures = nfeatures
+  )
 
   message('PCA ...')
-  seu = RunPCA(seu, do.print=FALSE, dims = dims.use, verbose=FALSE)
+  seu = RunPCA(seu, do.print=FALSE, dims = dims.use, verbose=FALSE, assay='scvi')
 
   message('VAE ...')
   pcmat = seu@meta.data %>% dplyr::select(contains('vae'),-contains('tsne'))
   colnames(pcmat) = paste0('PC', 1:ncol(pcmat))
   seu[['vae']] = CreateDimReducObject(
     embeddings = as.matrix(pcmat),
-    assay      = 'VAE',
+    assay      = 'scvi',
     key        = 'VAE_'
     )
 
@@ -150,7 +177,7 @@ Run_Seurat_scVI = cacheFile(path_RDS) %@% function(
     prune.SNN  = 0.1,
     dims       = 1:mdims,
     algorithm  = algorithm,
-    reduction.type='VAE'
+    reduction.type='vae'
   )
 
   return(seu)
