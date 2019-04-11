@@ -363,7 +363,7 @@ GetRegs = function(x, down=0.1, up=0.9, strand='*', lower=0, upper='max'){
     if(strand == '+' | strand == '*'){
         cs = cumsum(v)
         cs = cs/max(cs)
-        reg = c(min(which(cs >= down)), max(which(cs <= up)))
+        reg = c(min(which(cs >= down & cs != 0)), max(which(cs <= up & cs != 0)))
     }
     if(strand == '-'){
         cs = cumsum(rev(v))
