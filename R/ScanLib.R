@@ -350,3 +350,10 @@ ggplotColors <- function(g){
   h <- cumsum(c(15, rep(d,g - 1)))
   hcl(h = h, c = 100, l = 65)
 }
+			       
+# ---------------------------------------------------------------- #
+GRangesToBigWig = function(g, outfile, scale.fac){
+    cov = coverage(g)
+    cov = round(cov*scale.fac,2)
+    rtracklayer::export.bw(cov, outfile)
+}
