@@ -54,7 +54,7 @@ Alevin_To_Seurat = function(
     message(cname)
     alv.data = ReadAlevin(file.path(path, name))
     colnames(alv.data) = paste(cname, colnames(alv.data), sep='_')
-    seu = CreateSeuratObject(raw.data = alv.data, min.cells = min.cells, min.genes = min.genes, project = project_name)
+    seu = CreateSeuratObject(raw.data = alv.data, min.cells = min.cells, min.features = min.genes, project = project_name)
     lseu[[name]] = seu
   }
   sem = Reduce(function(x,y)MergeSeurat(x,y), lseu)
