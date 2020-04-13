@@ -282,7 +282,12 @@ Uniquer = function(v){
 # ---------------------------------------------------------------------------- #
 markExonNumber = function(g, id='transcript_id'){
 
-  library(data.table)
+  suppressPackageStartupMessages({
+  	
+  	library(data.table)
+	library(GenomicRanges)
+  })
+  g = sort(g)
   d = data.table(strand=as.character(strand(g)), id = values(g)[[id]])
   d[d$strand == '+' , `:=`( COUNT = .N , IDX = 1:.N ) , by = id[strand == '+']]
   d[d$strand == '-' , `:=`( COUNT = .N , IDX = .N:.1) , by = id[strand == '-']]
