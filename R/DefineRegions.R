@@ -238,6 +238,7 @@ Sample_FindRegion = function(
                                 lower  = lower,
                                 upper  = upper)
 
+            regs_filt = NULL
             if(score_filt){
                 message('Filtering Regions ...')
                 quants = quantile(regs_def$score)
@@ -256,7 +257,8 @@ Sample_FindRegion = function(
                 param.name = paste(names(param), param[1,], sep='.', collapse='_')
                 write.table(as.data.frame(sort(regs_raw))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'raw.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
                 write.table(as.data.frame(sort(regs_def))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'def.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
-                write.table(as.data.frame(sort(regs_def))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'filt.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
+                if(score_filt)
+                    write.table(as.data.frame(sort(regs_filt))[,1:3], file.path(outpath, DateNamer(paste(bwname,param.name,'filt.bed',sep='.'))),row.names=F,col.names=F,quote=F, sep='\t')
         }
     }
     return(invisible(lregs))
